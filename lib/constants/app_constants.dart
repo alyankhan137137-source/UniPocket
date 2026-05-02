@@ -1,0 +1,53 @@
+import 'package:flutter/material.dart';
+
+/// Application-wide constants for categories, formats, and animations.
+class AppConstants {
+  AppConstants._();
+
+  // --- Currency & Formats ---
+  static const String currencySymbol = '\$';
+  static const String currencyCode = 'USD';
+  static const String dateFormat = 'dd MMM yyyy';
+  static const String timeFormat = 'hh:mm a';
+
+  // --- Animation Durations ---
+  static const Duration durationShort = Duration(milliseconds: 200);
+  static const Duration durationMedium = Duration(milliseconds: 400);
+  static const Duration durationLong = Duration(milliseconds: 600);
+
+  // --- Default Categories: Expense ---
+  static const List<Map<String, dynamic>> expenseCategories = [
+    {'name': 'Food', 'emoji': '🍔', 'color': Color(0xFFFF7043)},
+    {'name': 'Transport', 'emoji': '🚗', 'color': Color(0xFF42A5F5)},
+    {'name': 'Groceries', 'emoji': '🛒', 'color': Color(0xFF66BB6A)},
+    {'name': 'Entertainment', 'emoji': '🎬', 'color': Color(0xFFAB47BC)},
+    {'name': 'Health', 'emoji': '💊', 'color': Color(0xFF26A69A)},
+    {'name': 'Shopping', 'emoji': '🛍️', 'color': Color(0xFFFFA726)},
+    {'name': 'Utilities', 'emoji': '💡', 'color': Color(0xFF78909C)},
+    {'name': 'Personal', 'emoji': '👕', 'color': Color(0xFFEC407A)},
+    {'name': 'Education', 'emoji': '📚', 'color': Color(0xFF5C6BC0)},
+    {'name': 'Gifts', 'emoji': '🎁', 'color': Color(0xFFFFCA28)},
+    {'name': 'Other', 'emoji': '📦', 'color': Color(0xFF9E9E9E)},
+  ];
+
+  // --- Default Categories: Income ---
+  static const List<Map<String, dynamic>> incomeCategories = [
+    {'name': 'Salary', 'emoji': '💰', 'color': Color(0xFF4CAF50)},
+    {'name': 'Freelance', 'emoji': '💻', 'color': Color(0xFF81C784)},
+    {'name': 'Investment', 'emoji': '📈', 'color': Color(0xFF388E3C)},
+    {'name': 'Refund', 'emoji': '🔙', 'color': Color(0xFF66BB6A)},
+    {'name': 'Other', 'emoji': '💵', 'color': Color(0xFFA5D6A7)},
+  ];
+
+  // --- Chart Colors ---
+  static const List<Color> chartColors = [
+    Color(0xFF6C63FF),
+    Color(0xFF03DAC6),
+    Color(0xFFFF7043),
+    Color(0xFF42A5F5),
+    Color(0xFF66BB6A),
+    Color(0xFFAB47BC),
+    Color(0xFFFFA726),
+    Color(0xFFEC407A),
+  ];
+}
