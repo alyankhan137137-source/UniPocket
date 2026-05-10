@@ -4,6 +4,11 @@ import '../models/expense_model.dart';
 import '../utils/widget_helper.dart';
 import '../utils/smart_features.dart';
 
+/// A provider that manages the state and business logic for financial transactions.
+/// 
+/// This class acts as the central hub for handling [Expense] and income records,
+/// providing methods for filtering, searching, and calculating financial summaries.
+/// It also integrates with [WidgetHelper] to update home screen widgets.
 class ExpenseProvider with ChangeNotifier {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
@@ -14,13 +19,25 @@ class ExpenseProvider with ChangeNotifier {
   String? _selectedCategory;
   String _searchQuery = '';
 
+  /// The complete list of transactions fetched from the database.
   List<Expense> get expenses        => _expenses;
+  
+  /// Whether a database operation is currently in progress.
   bool          get isLoading       => _isLoading;
+  
+  /// The last error message encountered, if any.
   String?       get errorMessage    => _errorMessage;
+  
+  /// The active date range filter.
   DateTimeRange? get selectedDateRange => _selectedDateRange;
+  
+  /// The active category filter.
   String?       get selectedCategory => _selectedCategory;
+  
+  /// The active text search query.
   String        get searchQuery     => _searchQuery;
 
+  /// Returns the subset of [_expenses] that match the current filters and search query.
   List<Expense> get filteredExpenses => _expenses.where((e) {
     final matchesSearch    = e.title.toLowerCase().contains(_searchQuery.toLowerCase());
     final matchesCategory  = _selectedCategory == null || e.category == _selectedCategory;
@@ -29,12 +46,19 @@ class ExpenseProvider with ChangeNotifier {
     return matchesSearch && matchesCategory && matchesDate;
   }).toList();
 
+  /// Total income in major currency units.
   double get totalIncome   => _expenses.where((e) => e.isIncome).fold(0.0, (s, e) => s + (e.amount / 100.0));
+  
+  /// Total expenses in major currency units.
   double get totalExpense  => _expenses.where((e) => e.isExpense).fold(0.0, (s, e) => s + (e.amount / 100.0));
+  
+  /// Current net balance (Income - Expense).
   double get currentBalance => totalIncome - totalExpense;
 
+  /// Returns the 10 most recent transactions.
   List<Expense> get recentTransactions => _expenses.take(10).toList();
 
+  /// Total amount spent today in major units.
   double get todayExpenses {
     final now = DateTime.now();
     return _expenses.where((e) =>
@@ -43,6 +67,7 @@ class ExpenseProvider with ChangeNotifier {
         .fold(0.0, (s, e) => s + (e.amount / 100.0));
   }
 
+  /// Returns a map of category names to their total spending amounts.
   Map<String, double> get categoryWiseExpenses {
     final Map<String, double> data = {};
     for (var e in _expenses.where((e) => e.isExpense)) {
@@ -51,6 +76,7 @@ class ExpenseProvider with ChangeNotifier {
     return data;
   }
 
+  /// Fetches all transactions from the database and updates the UI.
   Future<void> fetchExpenses() async {
     _setLoading(true);
     try {
@@ -64,6 +90,7 @@ class ExpenseProvider with ChangeNotifier {
     }
   }
 
+  /// Adds a new [expense] or income record and refreshes the list.
   Future<void> addExpense(Expense expense) async {
     try {
       await _dbHelper.insertExpense(expense);
@@ -74,6 +101,7 @@ class ExpenseProvider with ChangeNotifier {
     }
   }
 
+  /// Updates an existing transaction record.
   Future<void> updateExpense(Expense expense) async {
     try {
       await _dbHelper.updateExpense(expense);
@@ -84,6 +112,7 @@ class ExpenseProvider with ChangeNotifier {
     }
   }
 
+  /// Marks a transaction as deleted (soft delete).
   Future<void> deleteExpense(int id) async {
     try {
       await _dbHelper.softDeleteExpense(id);
@@ -94,6 +123,7 @@ class ExpenseProvider with ChangeNotifier {
     }
   }
 
+  /// Restores a previously soft-deleted transaction.
   Future<void> restoreExpense(int id) async {
     try {
       await _dbHelper.restoreExpense(id);
@@ -104,17 +134,19 @@ class ExpenseProvider with ChangeNotifier {
     }
   }
 
+  /// Updates the current search query and triggers a rebuild.
   void setSearchQuery(String query) {
     _searchQuery = query;
     notifyListeners();
   }
 
+  /// Sets a date range filter for the transaction list.
   void filterByDateRange(DateTime start, DateTime end) {
     _selectedDateRange = DateTimeRange(start: start, end: end);
     notifyListeners();
   }
 
-  // ✅ Demo data generation — inside the class
+  /// Generates sample transaction data for testing purposes.
   Future<void> generateDemoData() async {
     try {
       final demos = SmartFeatures.generateDemoExpenses();
@@ -140,6 +172,7 @@ class ExpenseProvider with ChangeNotifier {
     }
   }
 
+  /// Internal method to trigger widget updates (e.g., Home Screen widgets).
   void _updateWidgets() {
     WidgetHelper.updateBalanceWidget(
       balance: currentBalance,

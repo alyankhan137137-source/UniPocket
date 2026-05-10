@@ -2,17 +2,56 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_styles.dart';
 
-enum ButtonVariant { primary, secondary, outline, text }
-enum ButtonSize { small, medium, large }
+/// Available visual variants for the [CustomButton].
+enum ButtonVariant { 
+  /// Solid background with the primary color.
+  primary, 
+  /// Solid background with the secondary color.
+  secondary, 
+  /// Outlined border with no background.
+  outline, 
+  /// Simple text button without background or border.
+  text 
+}
 
+/// Available sizes for the [CustomButton].
+enum ButtonSize { 
+  /// Smallest padding and font size.
+  small, 
+  /// Default padding and font size.
+  medium, 
+  /// Largest padding and font size for prominent actions.
+  large 
+}
+
+/// A highly customizable button widget used throughout the application.
+/// 
+/// This widget supports multiple visual variants, sizes, and states (loading, disabled).
+/// It also handles gradients and icons, providing a consistent interaction
+/// model with built-in ink splashes and animations.
 class CustomButton extends StatelessWidget {
+  /// The text to display on the button.
   final String label;
+  
+  /// Callback function triggered when the button is tapped.
   final VoidCallback? onPressed;
+  
+  /// The visual style variant of the button.
   final ButtonVariant variant;
+  
+  /// The size dimensions of the button.
   final ButtonSize size;
+  
+  /// Whether to show a loading indicator instead of the label/icon.
   final bool isLoading;
+  
+  /// Whether the button is interactable.
   final bool isDisabled;
+  
+  /// Optional icon to display before the label.
   final IconData? icon;
+  
+  /// Whether to apply the brand gradient (applies to [ButtonVariant.primary] only).
   final bool useGradient;
 
   const CustomButton({
@@ -78,6 +117,7 @@ class CustomButton extends StatelessWidget {
     );
   }
 
+  /// Calculates the decoration for the button based on its state and variant.
   BoxDecoration _getDecoration(bool disabled) {
     if (variant == ButtonVariant.outline || variant == ButtonVariant.text) {
       return BoxDecoration(
@@ -105,12 +145,14 @@ class CustomButton extends StatelessWidget {
     );
   }
 
+  /// Determines the text and icon color based on the current state.
   Color _getTextColor(bool disabled) {
     if (disabled) return Colors.grey.shade600;
     if (variant == ButtonVariant.outline || variant == ButtonVariant.text) return AppColors.primary;
     return Colors.white;
   }
 
+  /// Returns the appropriate padding for the selected button size.
   EdgeInsets _getPadding() {
     switch (size) {
       case ButtonSize.small:
@@ -122,6 +164,7 @@ class CustomButton extends StatelessWidget {
     }
   }
 
+  /// Returns the appropriate font size for the selected button size.
   double _getFontSize() {
     switch (size) {
       case ButtonSize.small: return 12;
@@ -130,6 +173,7 @@ class CustomButton extends StatelessWidget {
     }
   }
 
+  /// Returns the appropriate icon size for the selected button size.
   double _getIconSize() {
     switch (size) {
       case ButtonSize.small: return 16;

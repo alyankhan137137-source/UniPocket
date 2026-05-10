@@ -10,6 +10,11 @@ import '../../models/expense_model.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_styles.dart';
 
+/// A screen for managing and tracking budgets by category.
+/// 
+/// This screen displays a summary of the total budget vs. spending and a detailed
+/// list of budgets for specific categories. Users can add new budgets, 
+/// delete existing ones via swipe actions, and view their progress.
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({super.key});
 
@@ -21,6 +26,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
   @override
   void initState() {
     super.initState();
+    // Initialize budget and category data
     Future.microtask(() async {
       if (!mounted) return;
       final expenses = context.read<ExpenseProvider>().expenses;
@@ -46,7 +52,9 @@ class _BudgetScreenState extends State<BudgetScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.history_rounded, color: AppColors.textPrimary),
-            onPressed: () {},
+            onPressed: () {
+              // TODO: Implement budget history view
+            },
           ),
         ],
       ),
@@ -89,6 +97,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
     );
   }
 
+  /// Builds the top overview card showing total budget performance.
   Widget _buildOverviewSection(BudgetProvider provider) {
     final double percent = provider.totalBudget > 0 ? (provider.totalSpent / provider.totalBudget) : 0.0;
     final color = percent > 0.9 ? Colors.red : (percent > 0.7 ? Colors.orange : Colors.green);
@@ -165,6 +174,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
     );
   }
 
+  /// Builds the header for the category-specific budget list.
   Widget _buildBudgetListHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -175,6 +185,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
     );
   }
 
+  /// Builds the list of category budgets using [Slidable] for delete actions.
   Widget _buildBudgetList(BudgetProvider budgetProvider, List<Expense> expenses) {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -279,6 +290,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
     );
   }
 
+  /// Builds the empty state UI when no budgets are defined.
   Widget _buildEmptyState() {
     return SliverFillRemaining(
       hasScrollBody: false,
@@ -297,6 +309,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
     );
   }
 
+  /// Shows a modal bottom sheet to add a new category budget.
   void _showAddBudgetSheet(BuildContext context, CategoryProvider catProvider) {
     final amountController = TextEditingController();
     CategoryModel? selectedCategory;

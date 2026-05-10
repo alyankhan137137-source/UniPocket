@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import '../../constants/app_styles.dart';
 import '../../constants/app_colors.dart';
 
+/// A screen that displays the application's privacy policy.
+/// 
+/// This screen provides clear information to the user about how their data 
+/// is handled, emphasizing that all data is stored locally on the device 
+/// and not shared with external servers.
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Privacy Policy', style: AppStyles.heading3),
@@ -42,7 +45,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 "Name: Alyan Khan Banochi\n"
                 "Email: muhammedalyankhanbu@gmail.com"),
             const SizedBox(height: 40),
-            Center(
+            const Center(
               child: Text(
                 "Last Updated: October 2023",
                 style: AppStyles.caption,
@@ -55,6 +58,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
     );
   }
 
+  /// Builds a section title with consistent styling.
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
@@ -65,6 +69,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
     );
   }
 
+  /// Builds the body text for a policy section.
   Widget _buildBodyText(String text) {
     return Text(
       text,

@@ -1,25 +1,69 @@
 import 'recurrence_frequency.dart';
 
+/// A template for transactions that repeat over time.
+/// 
+/// This class stores the configuration for generating actual transactions
+/// on a schedule (e.g., monthly rent, weekly groceries). It tracks the 
+/// schedule, the next due date, and whether the recurrence is currently active.
 class RecurringTransaction {
+  /// Unique identifier for the recurring transaction template.
   final String id;
+  
+  /// The title that will be used for generated transactions.
   final String templateTitle;
-  final int amount; // in cents
+  
+  /// The monetary amount in minor units (cents).
+  final int amount; 
+  
+  /// The identifier of the category this transaction belongs to.
   final String categoryId;
-  final String type; // 'income' or 'expense'
+  
+  /// The type of transaction: 'income' or 'expense'.
+  final String type; 
+  
+  /// How often the transaction repeats.
   final RecurrenceFrequency frequency;
+  
+  /// The multiplier for the frequency (e.g., interval 2 with frequency 'weekly' means bi-weekly).
   final int interval;
+  
+  /// The date when the recurrence schedule begins.
   final DateTime startDate;
+  
+  /// Optional date when the recurrence should stop.
   final DateTime? endDate;
+  
+  /// The specific day of the month for monthly/yearly recurrences.
   final int? dayOfMonth;
+  
+  /// The specific day of the week (1-7) for weekly recurrences.
   final int? dayOfWeek;
+  
+  /// The specific month of the year for yearly recurrences.
   final int? monthOfYear;
+  
+  /// The date when the last transaction was successfully generated from this template.
   final DateTime? lastGeneratedDate;
+  
+  /// The calculated date for the next transaction generation.
   final DateTime nextDueDate;
+  
+  /// Whether the recurrence is active in the system.
   final bool isActive;
+  
+  /// Whether the user has temporarily paused the recurrence.
   final bool isPaused;
+  
+  /// Specific dates where transaction generation should be skipped.
   final List<DateTime> skipDates;
+  
+  /// Total number of transactions generated from this template so far.
   final int totalGenerated;
+  
+  /// Optional note or description for generated transactions.
   final String? note;
+  
+  /// Timestamp when the template was created.
   final DateTime createdAt;
 
   RecurringTransaction({
@@ -45,6 +89,7 @@ class RecurringTransaction {
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
+  /// Converts the [RecurringTransaction] instance into a [Map] for storage.
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -70,6 +115,7 @@ class RecurringTransaction {
     };
   }
 
+  /// Creates a [RecurringTransaction] instance from a [Map].
   factory RecurringTransaction.fromMap(Map<String, dynamic> map) {
     return RecurringTransaction(
       id: map['id'],
@@ -97,6 +143,7 @@ class RecurringTransaction {
     );
   }
 
+  /// Creates a copy of this [RecurringTransaction] with the given fields replaced.
   RecurringTransaction copyWith({
     String? templateTitle,
     int? amount,

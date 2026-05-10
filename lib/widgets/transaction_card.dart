@@ -4,8 +4,16 @@ import '../models/expense_model.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_styles.dart';
 
+/// A card widget that displays details of a single financial transaction.
+/// 
+/// This widget provides a summarized view of an [Expense], showing its title,
+/// category, amount, and date. It visually distinguishes between income and 
+/// expenses using color and icon indicators.
 class TransactionCard extends StatelessWidget {
+  /// The transaction data to display.
   final Expense expense;
+  
+  /// Optional callback triggered when the user taps on the card.
   final VoidCallback? onTap;
 
   const TransactionCard({
@@ -65,7 +73,7 @@ class TransactionCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      "${isIncome ? '+' : '-'}\$${expense.amount.toStringAsFixed(2)}",
+                      "${isIncome ? '+' : '-'}\$${(expense.amount / 100).toStringAsFixed(2)}",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -90,6 +98,7 @@ class TransactionCard extends StatelessWidget {
     );
   }
 
+  /// Builds the income/expense status icon.
   Widget _buildIcon(bool isIncome) {
     return Container(
       width: 48,

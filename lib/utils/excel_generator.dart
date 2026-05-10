@@ -4,7 +4,16 @@ import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
 import '../models/expense_model.dart';
 
+/// A utility class for generating and sharing Excel (.xlsx) financial reports.
+/// 
+/// This class uses the `excel` package to create a workbook with multiple sheets:
+/// - **All Transactions**: A detailed row-by-row list of every transaction.
+/// - **Summary**: A high-level overview of total income, expense, and net balance.
 class ExcelGenerator {
+  /// Generates an Excel report for the given [expenses] and triggers a system share sheet.
+  /// 
+  /// [userName] is used in the report metadata.
+  /// Note: Currently, sharing functionality is bypassed on Web.
   static Future<void> generateExcelReport({
     required List<Expense> expenses,
     required String userName,
@@ -16,6 +25,7 @@ class ExcelGenerator {
     final Sheet sheet = excel[sheetName];
     final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
 
+    // Define common cell styles
     CellStyle headerStyle = CellStyle(
       bold: true,
       italic: false,
@@ -30,6 +40,7 @@ class ExcelGenerator {
       horizontalAlign: HorizontalAlign.Right,
     );
 
+    // Write Column Headers
     List<String> headers = ["Date", "Type", "Category", "Title", "Amount", "Payment Method", "Note"];
     for (var i = 0; i < headers.length; i++) {
       var cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
@@ -37,6 +48,7 @@ class ExcelGenerator {
       cell.cellStyle = headerStyle;
     }
 
+    // Write Transaction Data
     for (var i = 0; i < expenses.length; i++) {
       final e = expenses[i];
       final rowIndex = i + 1;
@@ -51,6 +63,7 @@ class ExcelGenerator {
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: rowIndex)).value = TextCellValue(e.note ?? "");
     }
 
+    // Create and populate the Summary Sheet
     const String summarySheetName = "Summary";
     excel.updateCell(summarySheetName, CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0), TextCellValue("Report Summary"), cellStyle: headerStyle);
     double totalIncome = expenses.where((e) => e.type == 'income').fold(0.0, (sum, e) => sum + (e.amount / 100.0));
@@ -62,6 +75,7 @@ class ExcelGenerator {
     excel.updateCell(summarySheetName, CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 4), TextCellValue("Net Balance"));
     excel.updateCell(summarySheetName, CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 4), DoubleCellValue(totalIncome - totalExpense));
 
+    // Save and trigger share dialog
     try {
       final List<int>? fileBytes = excel.save();
       if (fileBytes != null) {

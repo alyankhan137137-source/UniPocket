@@ -6,7 +6,16 @@ import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
 import '../models/expense_model.dart';
 
+/// A utility class for generating and sharing PDF expense reports.
+/// 
+/// This class uses the `pdf` package to construct a multi-page document
+/// containing financial summaries, category breakdowns, and a detailed
+/// transaction table.
 class PdfGenerator {
+  /// Generates a PDF report for the given [expenses] and triggers a system share sheet.
+  /// 
+  /// [dateRange] defines the period covered by the report.
+  /// [userName] is included in the report header.
   static Future<void> generateExpenseReport({
     required List<Expense> expenses,
     required DateTimeRange dateRange,
@@ -52,7 +61,7 @@ class PdfGenerator {
         debugPrint("PDF export not supported on web yet.");
         return;
       }
-      // Mobile only
+      // Mobile only: save to bytes and share
       final bytes = await pdf.save();
       await SharePlus.instance.share(
         ShareParams(
@@ -65,6 +74,7 @@ class PdfGenerator {
     }
   }
 
+  /// Internal helper to build the report header.
   static pw.Widget _buildHeader(String name, DateTimeRange range, DateFormat df) {
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -87,6 +97,7 @@ class PdfGenerator {
     );
   }
 
+  /// Internal helper to build the high-level summary section.
   static pw.Widget _buildSummary(double income, double expense, int count) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(16),
@@ -106,6 +117,7 @@ class PdfGenerator {
     );
   }
 
+  /// Helper to build a single summary metric item.
   static pw.Widget _summaryItem(String label, String value, PdfColor color) {
     return pw.Column(
       children: [
@@ -116,6 +128,7 @@ class PdfGenerator {
     );
   }
 
+  /// Internal helper to build the category-wise spending table.
   static pw.Widget _buildCategoryBreakdown(Map<String, double> categories) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -134,6 +147,7 @@ class PdfGenerator {
     );
   }
 
+  /// Internal helper to build the detailed transaction table.
   static pw.Widget _buildTransactionTable(List<Expense> expenses, DateFormat df) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -160,6 +174,7 @@ class PdfGenerator {
     );
   }
 
+  /// Internal helper to build the report footer with page numbers.
   static pw.Widget _buildFooter(pw.Context context) {
     return pw.Container(
       alignment: pw.Alignment.centerRight,

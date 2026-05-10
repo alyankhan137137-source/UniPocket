@@ -11,9 +11,18 @@ import '../../core/validation/validators/amount_validator.dart';
 import '../../core/validation/validation_result.dart';
 import '../../core/validation/widgets/validated_text_field.dart';
 
+/// A screen for adding or editing financial transactions (expenses or income).
+/// 
+/// This screen provides a comprehensive form for entering transaction details
+/// such as amount, title, category, date, and payment method. It features 
+/// "smart" capabilities like category suggestions based on the title, 
+/// duplicate detection, and haptic feedback.
 class AddExpenseScreen extends StatefulWidget {
+  /// An optional transaction to edit. If null, the screen enters "Add" mode.
   final Expense? expenseToEdit;
+
   const AddExpenseScreen({super.key, this.expenseToEdit});
+
   @override
   State<AddExpenseScreen> createState() => _AddExpenseScreenState();
 }
@@ -31,6 +40,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   String  _paymentMethod   = 'Cash';
   bool    _isSaving        = false;
 
+  /// Returns true if the screen is currently editing an existing transaction.
   bool get _isEdit => widget.expenseToEdit != null;
 
   @override
@@ -46,19 +56,20 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       _selectedDate        = e.date;
       _paymentMethod       = e.paymentMethod ?? 'Cash';
     } else {
-      // ✅ Load last used category
       _loadLastCategory();
     }
 
-    // ✅ Listen to title changes for smart suggestions
+    // Listen to title changes to provide real-time category suggestions
     _titleCtrl.addListener(_onTitleChanged);
   }
 
+  /// Loads the category used in the last transaction of the current type.
   Future<void> _loadLastCategory() async {
     final last = await SmartFeatures.getLastCategory(_type);
     if (last != null && mounted) setState(() => _selectedCategory = last);
   }
 
+  /// Triggers category suggestion logic when the title text changes.
   void _onTitleChanged() {
     final suggestion = SmartFeatures.suggestCategory(_titleCtrl.text, _type);
     if (suggestion != null && suggestion != _suggestedCategory) {
@@ -74,6 +85,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     super.dispose();
   }
 
+  /// Validates the form and saves the transaction to the database.
   Future<void> _saveTransaction() async {
     if (!_formKey.currentState!.validate() || _selectedCategory == null) {
       SmartFeatures.errorVibrate();
@@ -86,7 +98,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     final parsed = double.tryParse(clean) ?? 0.0;
     final cents  = (parsed * 100).toInt();
 
-    // ✅ Duplicate detection
+    // Check for potential duplicate transactions before saving a new entry
     if (!_isEdit) {
       final provider = context.read<ExpenseProvider>();
       final dup = SmartFeatures.findDuplicate(
@@ -125,7 +137,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         await provider.addExpense(expense);
       }
 
-      // ✅ Save last used category
+      // Store the used category for future suggestions
       await SmartFeatures.saveLastCategory(_type, _selectedCategory!);
       SmartFeatures.successVibrate();
 
@@ -139,6 +151,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     }
   }
 
+  /// Shows a warning dialog if a similar transaction is detected.
   Future<bool> _showDuplicateWarning(Expense duplicate) async {
     return await showDialog<bool>(
       context: context,
@@ -186,34 +199,28 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Type toggle ───────────────────────────────────────
               _buildTypeToggle(color),
               const SizedBox(height: 24),
 
-              // ── Amount ────────────────────────────────────────────
               const Text('Amount', style: AppStyles.heading3),
               const SizedBox(height: 12),
               _buildAmountField(color),
               const SizedBox(height: 20),
 
-              // ── Title + smart suggestion ──────────────────────────
               const Text('Title', style: AppStyles.heading3),
               const SizedBox(height: 12),
               _buildTitleField(),
 
-              // ✅ Smart category suggestion banner
               if (_suggestedCategory != null && _selectedCategory != _suggestedCategory)
                 _buildSuggestionBanner(),
 
               const SizedBox(height: 20),
 
-              // ── Category ─────────────────────────────────────────
               const Text('Category', style: AppStyles.heading3),
               const SizedBox(height: 12),
               _buildCategorySelector(),
               const SizedBox(height: 20),
 
-              // ── Date + Payment row ────────────────────────────────
               Row(
                 children: [
                   Expanded(child: _buildDatePicker()),
@@ -223,7 +230,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               ),
               const SizedBox(height: 20),
 
-              // ── Note ──────────────────────────────────────────────
               TextField(
                 controller: _noteCtrl,
                 decoration: AppStyles.inputDecoration(
@@ -234,7 +240,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               ),
               const SizedBox(height: 30),
 
-              // ── Save button ───────────────────────────────────────
               ElevatedButton(
                 onPressed: _isSaving ? null : _saveTransaction,
                 style: ElevatedButton.styleFrom(
@@ -256,6 +261,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     );
   }
 
+  /// Builds the toggle switch for selecting between Income and Expense.
   Widget _buildTypeToggle(Color color) {
     return Container(
       decoration: BoxDecoration(
@@ -300,9 +306,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     );
   }
 
+  /// Builds the input field for the transaction amount.
   Widget _buildAmountField(Color color) {
     return GestureDetector(
-      // ✅ Double tap to clear amount
       onDoubleTap: () {
         SmartFeatures.mediumTap();
         _amountCtrl.clear();
@@ -318,6 +324,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     );
   }
 
+  /// Builds the input field for the transaction title.
   Widget _buildTitleField() {
     return ValidatedTextField(
       controller: _titleCtrl,
@@ -336,7 +343,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     );
   }
 
-  // ✅ Smart suggestion banner
+  /// Builds the banner that shows smart category suggestions.
   Widget _buildSuggestionBanner() {
     return GestureDetector(
       onTap: () {
@@ -366,6 +373,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     );
   }
 
+  /// Builds the horizontal list of categories for selection.
   Widget _buildCategorySelector() {
     final cats = context.watch<CategoryProvider>().categories
         .where((c) => c.type.name == _type).toList();
@@ -416,6 +424,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     );
   }
 
+  /// Builds the picker for selecting the transaction date.
   Widget _buildDatePicker() {
     return GestureDetector(
       onTap: () async {
@@ -452,6 +461,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     );
   }
 
+  /// Builds the dropdown for selecting the payment method.
   Widget _buildPaymentMethod() {
     return Container(
       padding: const EdgeInsets.all(16),

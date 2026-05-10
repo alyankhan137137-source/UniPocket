@@ -5,9 +5,19 @@ import '../../utils/animations.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_styles.dart';
 
+/// A security screen that handles PIN entry and biometric authentication.
+/// 
+/// This screen is used for both setting up a new PIN and verifying an 
+/// existing one. It features a custom numeric keypad, haptic feedback, 
+/// and shake animations on incorrect entry.
 class PinLockScreen extends StatefulWidget {
+  /// Whether the screen is in confirmation mode (e.g., repeating a new PIN).
   final bool isConfirming;
+  
+  /// The first PIN entered when creating a new PIN, used for comparison in confirmation mode.
   final String? initialPin;
+  
+  /// Callback triggered when a PIN is successfully entered or confirmed.
   final Function(String)? onComplete;
 
   const PinLockScreen({
@@ -36,6 +46,7 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
     _checkBiometrics();
   }
 
+  /// Attempts biometric authentication if enabled and not in confirmation mode.
   Future<void> _checkBiometrics() async {
     if (!widget.isConfirming) {
       final bool enabled = await SecurityHelper.isBiometricEnabled();
@@ -54,6 +65,7 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
     super.dispose();
   }
 
+  /// Handles numeric key presses and triggers verification when 4 digits are entered.
   void _onKeyPress(String key) {
     if (_enteredPin.length < 4) {
       HapticFeedback.lightImpact();
@@ -62,6 +74,7 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
     }
   }
 
+  /// Removes the last digit from the entered PIN.
   void _onBackspace() {
     if (_enteredPin.isNotEmpty) {
       HapticFeedback.lightImpact();
@@ -69,6 +82,7 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
     }
   }
 
+  /// Verifies the entered PIN against either the initial entry or saved security data.
   Future<void> _verifyPin() async {
     if (widget.isConfirming) {
       if (_enteredPin == widget.initialPin) {
@@ -87,6 +101,7 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
     }
   }
 
+  /// Triggers haptic feedback and shake animation to signal an incorrect PIN.
   void _triggerError() {
     HapticFeedback.vibrate();
     setState(() => _isError = true);
@@ -100,7 +115,6 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      // ✅ Fix: SingleChildScrollView prevents overflow on small screens
       body: SafeArea(
         child: SingleChildScrollView(
           child: ConstrainedBox(
@@ -128,6 +142,7 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
     );
   }
 
+  /// Builds the top header with an icon and contextual title.
   Widget _buildHeader() {
     final title = widget.isConfirming ? "Confirm PIN" : (widget.initialPin == null ? "Create PIN" : "Enter PIN");
     return Column(
@@ -141,6 +156,7 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
     );
   }
 
+  /// Builds the visual indicator for the number of digits entered.
   Widget _buildPinDots() {
     return AppAnimations.shakeOnError(
       controller: _shakeController,
@@ -163,6 +179,7 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
     );
   }
 
+  /// Builds the custom numeric keypad.
   Widget _buildNumPad() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -182,6 +199,7 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
     );
   }
 
+  /// Builds a single numeric button for the keypad.
   Widget _buildNumButton(String key) {
     return AppAnimations.scaleOnPress(
       onTap: () => _onKeyPress(key),
@@ -192,6 +210,7 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
     );
   }
 
+  /// Builds the backspace button for the keypad.
   Widget _buildBackspaceButton() {
     return AppAnimations.scaleOnPress(
       onTap: _onBackspace,
@@ -199,6 +218,7 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
     );
   }
 
+  /// Builds the biometric authentication button if supported by the device.
   Widget _buildBiometricButton() {
     return FutureBuilder<bool>(
       future: SecurityHelper.canCheckBiometrics(),

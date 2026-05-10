@@ -1,6 +1,16 @@
 import 'transaction_filter.dart';
 
+/// A utility class that converts a [TransactionFilter] into a SQLite query.
+/// 
+/// This builder constructs the 'WHERE' clause, arguments, and 'ORDER BY' 
+/// string required to fetch filtered transactions from the database.
 class FilterQueryBuilder {
+  /// Builds a map containing the query components based on the provided [filter].
+  /// 
+  /// The returned map contains:
+  /// - 'where': The formatted WHERE string with placeholders.
+  /// - 'whereArgs': A list of values to replace the placeholders.
+  /// - 'orderBy': The string defining the sort field and direction.
   static Map<String, dynamic> build(TransactionFilter filter) {
     List<String> whereClauses = ["is_deleted = 0"];
     List<dynamic> arguments = [];
@@ -54,6 +64,7 @@ class FilterQueryBuilder {
     };
   }
 
+  /// Maps the [SortField] enum to its corresponding database column name.
   static String _getSortField(SortField field) {
     switch (field) {
       case SortField.date: return 'date';

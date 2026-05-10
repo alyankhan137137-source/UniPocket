@@ -6,6 +6,10 @@ import '../../../providers/expense_provider.dart';
 import '../../../providers/settings_provider.dart';
 import '../../../constants/app_colors.dart';
 
+/// A card widget that displays the user's total balance, income, and expenses.
+/// 
+/// This widget features a gradient background, animated balance numbers,
+/// and a privacy toggle to hide or show sensitive monetary values.
 class BalanceCard extends StatefulWidget {
   const BalanceCard({super.key});
   @override
@@ -15,6 +19,7 @@ class BalanceCard extends StatefulWidget {
 class _BalanceCardState extends State<BalanceCard> {
   bool _isBalanceVisible = true;
 
+  /// Formats the monetary [amount] based on the [currencyCode].
   String _formatAmount(double amount, String currencyCode) {
     try {
       final currency = CurrencyService().findByCode(currencyCode);
@@ -68,7 +73,6 @@ class _BalanceCardState extends State<BalanceCard> {
                           const SizedBox(width: 4),
                           Text(currency, style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 12, fontWeight: FontWeight.bold)),
                           const SizedBox(width: 12),
-                          // ✅ Only eye icon toggles
                           GestureDetector(
                             onTap: () => setState(() => _isBalanceVisible = !_isBalanceVisible),
                             child: Icon(
@@ -111,6 +115,7 @@ class _BalanceCardState extends State<BalanceCard> {
     );
   }
 
+  /// Builds a column showing either income or expense details.
   Widget _infoCol(String label, String amount, IconData icon, Color iconColor) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),

@@ -5,6 +5,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/category_model.dart';
 import '../models/expense_model.dart';
 
+/// A provider that manages transaction categories, including default and custom types.
+/// 
+/// This provider handles the lifecycle of categories, providing different lists 
+/// for income and expenses, and managing persistence on Web via [SharedPreferences].
 class CategoryProvider with ChangeNotifier {
   List<CategoryModel> _categories = [];
   bool _isLoading = false;
@@ -12,12 +16,21 @@ class CategoryProvider with ChangeNotifier {
 
   static const String _key = 'pt_categories';
 
+  /// The complete list of available categories.
   List<CategoryModel> get categories => _categories;
+  
+  /// A filtered list containing only expense-related categories.
   List<CategoryModel> get expenseCategories =>
       _categories.where((c) => c.type == CategoryType.expense).toList();
+  
+  /// A filtered list containing only income-related categories.
   List<CategoryModel> get incomeCategories =>
       _categories.where((c) => c.type == CategoryType.income).toList();
+  
+  /// Whether the provider is currently loading category data.
   bool get isLoading => _isLoading;
+  
+  /// The last error message encountered during category operations.
   String? get error => _error;
 
   CategoryProvider() {
@@ -25,6 +38,8 @@ class CategoryProvider with ChangeNotifier {
   }
 
   // ── Default categories (always available) ────────────────────────
+  
+  /// A static list of system-default categories used to seed the application.
   static List<CategoryModel> get _defaults {
     final now = DateTime.now();
     return [
@@ -50,6 +65,11 @@ class CategoryProvider with ChangeNotifier {
   }
 
   // ── Load ─────────────────────────────────────────────────────────
+  
+  /// Loads categories from the database or local storage.
+  /// 
+  /// On Web, it retrieves from [SharedPreferences] and ensures defaults are present.
+  /// On Mobile, it currently falls back to defaults (SQLite integration pending).
   Future<void> loadCategories() async {
     _isLoading = true;
     notifyListeners();
@@ -73,7 +93,7 @@ class CategoryProvider with ChangeNotifier {
           await _saveWeb(_categories);
         }
       } else {
-        // Mobile — use built-in defaults directly (SQLite categories loaded elsewhere)
+        // Mobile — use built-in defaults directly
         _categories = _defaults;
       }
     } catch (e) {
@@ -85,12 +105,15 @@ class CategoryProvider with ChangeNotifier {
     }
   }
 
+  /// Internal helper to persist the category list on Web.
   Future<void> _saveWeb(List<CategoryModel> list) async {
     final p = await SharedPreferences.getInstance();
     await p.setString(_key, jsonEncode(list.map((c) => c.toMap()).toList()));
   }
 
   // ── Add ──────────────────────────────────────────────────────────
+  
+  /// Adds a new custom [category] to the list.
   Future<void> addCategory(CategoryModel category) async {
     try {
       _categories.add(category.copyWith(isDefault: false));
@@ -103,6 +126,10 @@ class CategoryProvider with ChangeNotifier {
   }
 
   // ── Update ───────────────────────────────────────────────────────
+  
+  /// Updates an existing custom [category].
+  /// 
+  /// Note: System-default categories cannot be modified.
   Future<void> updateCategory(CategoryModel category) async {
     if (category.isDefault) {
       _error = 'Default categories cannot be modified.';
@@ -121,6 +148,11 @@ class CategoryProvider with ChangeNotifier {
   }
 
   // ── Delete ───────────────────────────────────────────────────────
+  
+  /// Removes a custom category from the application.
+  /// 
+  /// Returns true if deletion was successful.
+  /// Note: System-default categories cannot be deleted.
   Future<bool> deleteCategory(String id) async {
     final cat = _categories.firstWhere((c) => c.id == id,
         orElse: () => _defaults.first);
@@ -142,9 +174,14 @@ class CategoryProvider with ChangeNotifier {
   }
 
   // ── Stats ────────────────────────────────────────────────────────
+  
+  /// Returns the number of times a category has been used in the given [expenses] list.
   int getCategoryUsageCount(String name, List<Expense> expenses) =>
       expenses.where((e) => e.category == name).length;
 
+  /// Returns a list of categories sorted by their usage frequency.
+  /// 
+  /// [limit] constrains the number of results returned.
   List<Map<String, dynamic>> getMostUsedCategories(List<Expense> expenses,
       {int limit = 5}) {
     final Map<String, int> map = {};

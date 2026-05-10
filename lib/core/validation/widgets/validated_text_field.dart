@@ -3,14 +3,34 @@ import 'package:flutter/material.dart';
 import '../validation_result.dart';
 import '../sanitizers/input_sanitizer.dart';
 
+/// A [TextFormField] wrapper that provides real-time validation and debouncing.
+/// 
+/// This widget handles the complexity of showing validation errors as the user
+/// types, using a debounce timer to avoid flickering. It also supports optional
+/// input sanitization when the field is submitted.
 class ValidatedTextField extends StatefulWidget {
+  /// The controller for the text being edited.
   final TextEditingController controller;
+  
+  /// The label text shown above or within the field.
   final String label;
+  
+  /// Optional placeholder text.
   final String? hint;
+  
+  /// A callback that takes the current text and returns a [ValidationResult].
   final ValidationResult Function(String?) validator;
+  
+  /// The type of keyboard to display.
   final TextInputType keyboardType;
+  
+  /// Optional icon to display at the start of the field.
   final IconData? icon;
+  
+  /// Callback triggered after the debounce period when the text changes.
   final Function(String)? onChanged;
+  
+  /// Whether to apply [InputSanitizer] to the text when the user finishes editing.
   final bool sanitizeOnFinish;
 
   const ValidatedTextField({
@@ -40,15 +60,18 @@ class _ValidatedTextFieldState extends State<ValidatedTextField> {
     super.dispose();
   }
 
+  /// Handles text changes with debouncing to update validation state.
   void _onChanged(String value) {
     if (!_hasStartedTyping) setState(() => _hasStartedTyping = true);
     
     if (_debounce?.isActive ?? false) _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
-      setState(() {
-        _result = widget.validator(value);
-      });
-      if (widget.onChanged != null) widget.onChanged!(value);
+      if (mounted) {
+        setState(() {
+          _result = widget.validator(value);
+        });
+        if (widget.onChanged != null) widget.onChanged!(value);
+      }
     });
   }
 

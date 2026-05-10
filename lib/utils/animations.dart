@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 
+/// A utility class that provides reusable animations and transitions for the application.
+/// 
+/// This class includes page transitions, staggered list animations, numeric count-up effects,
+/// and interactive micro-animations to enhance the user experience.
 class AppAnimations {
   AppAnimations._();
 
   // --- Page Transitions ---
   
+  /// A horizontal slide transition for navigating between screens.
   static Route slideRoute(Widget page) {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => page,
@@ -18,6 +23,7 @@ class AppAnimations {
     );
   }
 
+  /// A smooth fade transition for navigating between screens.
   static Route fadeRoute(Widget page) {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => page,
@@ -27,6 +33,7 @@ class AppAnimations {
     );
   }
 
+  /// A scaling transition for navigating between screens.
   static Route scaleRoute(Widget page) {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => page,
@@ -38,6 +45,9 @@ class AppAnimations {
 
   // --- List Animations ---
 
+  /// Wraps a list item with an entrance animation that slides and fades into view.
+  /// 
+  /// [index] is used to stagger the start time of the animation based on the item's position.
   static Widget staggeredListEntry({
     required int index,
     required Widget child,
@@ -66,6 +76,9 @@ class AppAnimations {
 
   // --- Number Animations ---
 
+  /// Displays a numeric value that animates from zero to the target [value].
+  /// 
+  /// Useful for displaying balances or spending totals with a dynamic effect.
   static Widget countUpText({
     required double value,
     TextStyle? style,
@@ -88,10 +101,12 @@ class AppAnimations {
 
   // --- Micro-interactions ---
 
+  /// A wrapper that applies a subtle scale-down effect when the [child] is pressed.
   static Widget scaleOnPress({required Widget child, VoidCallback? onTap}) {
     return _ScaleOnPressWrapper(onTap: onTap, child: child);
   }
 
+  /// A wrapper that triggers a horizontal shake animation, typically used for validation errors.
   static Widget shakeOnError({
     required Widget child,
     required AnimationController controller,
@@ -101,14 +116,17 @@ class AppAnimations {
 
   // --- Placeholder Widgets (Replacement for missing Lottie files) ---
 
+  /// Returns a standard success icon for consistent visual feedback.
   static Widget lottieSuccess({double size = 100}) {
     return Icon(Icons.check_circle_outline, size: size, color: Colors.green);
   }
 
+  /// Returns a standard empty-state icon.
   static Widget lottieEmpty({double size = 200}) {
     return Icon(Icons.hourglass_empty_rounded, size: size, color: Colors.grey);
   }
 
+  /// Returns a standard loading indicator.
   static Widget lottieLoading({double size = 150}) {
     return SizedBox(
       width: size,

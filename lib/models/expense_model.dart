@@ -1,17 +1,41 @@
 import 'dart:convert';
 
-/// Represents a single financial transaction (Income or Expense).
+/// Represents a single financial transaction, which can be either an income or an expense.
+/// 
+/// This model stores core transaction data such as amount, title, category, and date,
+/// as well as optional metadata like notes and payment methods.
 class Expense {
+  /// Unique identifier for the transaction record.
   final int? id;
+  
+  /// A short descriptive title for the transaction.
   final String title;
-  final int amount; // Stored as integer minor units (cents)
+  
+  /// The monetary amount stored in minor units (e.g., cents).
+  final int amount; 
+  
+  /// The category name associated with this transaction.
   final String category;
+  
+  /// The date and time when the transaction occurred.
   final DateTime date;
-  final String type; // 'income' or 'expense'
+  
+  /// The type of transaction: 'income' or 'expense'.
+  final String type; 
+  
+  /// An optional descriptive note.
   final String? note;
+  
+  /// The method used for payment (e.g., 'Cash', 'Card').
   final String? paymentMethod;
+  
+  /// An optional path or reference to a digital receipt.
   final String? receipt;
+  
+  /// Timestamp of when the record was created.
   final DateTime createdAt;
+  
+  /// Timestamp of the last update to this record.
   final DateTime updatedAt;
 
   Expense({
@@ -29,7 +53,7 @@ class Expense {
   })  : createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
 
-  /// Creates a copy of Expense with updated fields.
+  /// Creates a copy of this [Expense] with the given fields replaced.
   Expense copyWith({
     int? id,
     String? title,
@@ -58,7 +82,7 @@ class Expense {
     );
   }
 
-  /// Converts Map from SQLite to Expense object.
+  /// Creates an [Expense] instance from a database map.
   factory Expense.fromMap(Map<String, dynamic> map) {
     return Expense(
       id: map['id'],
@@ -75,7 +99,7 @@ class Expense {
     );
   }
 
-  /// Converts Expense object to Map for SQLite.
+  /// Converts the [Expense] instance into a map for database storage.
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -92,10 +116,10 @@ class Expense {
     };
   }
 
-  /// JSON serialization for API/Export
+  /// Serializes the [Expense] instance to a JSON string.
   String toJson() => json.encode(toMap());
 
-  /// JSON deserialization
+  /// Deserializes an [Expense] instance from a JSON string.
   factory Expense.fromJson(String source) => Expense.fromMap(json.decode(source));
 
   @override
@@ -103,6 +127,9 @@ class Expense {
     return 'Expense(id: $id, title: $title, amount: $amount, type: $type, category: $category, date: $date)';
   }
 
+  /// Returns true if this transaction is an income.
   bool get isIncome => type == 'income';
+  
+  /// Returns true if this transaction is an expense.
   bool get isExpense => type == 'expense';
 }

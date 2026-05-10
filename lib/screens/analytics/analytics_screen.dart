@@ -7,6 +7,11 @@ import '../../providers/budget_provider.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_styles.dart';
 
+/// A screen that provides visual data analysis of the user's financial activity.
+/// 
+/// This screen displays various charts (Line, Pie, Bar) to represent spending trends,
+/// category breakdowns, and income vs. expense comparisons. It also provides 
+/// automated insights based on the user's transaction history.
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
 
@@ -30,6 +35,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
     });
   }
 
+  /// Updates the financial filters based on the selected time period (Day, Week, Month, Year).
   void _updateFilters() {
     final now = DateTime.now();
     DateTime start;
@@ -100,6 +106,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
     );
   }
 
+  /// Builds the top tab bar for selecting the analytics time period.
   Widget _buildPeriodSelector() {
     return Container(
       height: 45,
@@ -126,6 +133,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
     );
   }
 
+  /// Builds the row of summary cards showing total income, expense, and savings.
   Widget _buildSummaryCards(ExpenseProvider provider) {
     return Row(
       children: [
@@ -138,6 +146,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
     );
   }
 
+  /// Helper widget to build an individual summary card.
   Widget _summaryCard(String label, double amount, IconData icon, Color color) {
     return Expanded(
       child: Container(
@@ -171,6 +180,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
     );
   }
 
+  /// Builds a section container with a title and a chart widget.
   Widget _buildChartSection(String title, Widget chart) {
     return Container(
       width: double.infinity,
@@ -191,11 +201,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
     );
   }
 
+  /// Generates the spending trend line chart.
   Widget _buildLineChart(ExpenseProvider provider) {
     final expenses = provider.filteredExpenses.where((e) => e.isExpense).toList();
     if (expenses.isEmpty) return const Center(child: Text("No data for this period"));
 
-    // Simple grouping for the line chart (e.g., by day)
+    // Simple grouping for the line chart by day
     Map<int, double> dayTotals = {};
     for (var e in expenses) {
       dayTotals[e.date.day] = (dayTotals[e.date.day] ?? 0) + (e.amount / 100.0);
@@ -225,6 +236,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
     );
   }
 
+  /// Generates the category breakdown pie chart.
   Widget _buildPieChart(ExpenseProvider provider) {
     final catData = provider.categoryWiseExpenses;
     if (catData.isEmpty) return const Center(child: Text("No data available"));
@@ -249,6 +261,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
     );
   }
 
+  /// Generates the income vs expense comparison bar chart.
   Widget _buildBarChart(ExpenseProvider provider) {
     return BarChart(
       BarChartData(
@@ -271,6 +284,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
     );
   }
 
+  /// Builds a list of the top categories by spending volume.
   Widget _buildTopCategories(ExpenseProvider provider) {
     final catData = provider.categoryWiseExpenses.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
@@ -312,6 +326,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
     );
   }
 
+  /// Builds the automated financial insights section.
   Widget _buildInsights(ExpenseProvider expenseProvider, BudgetProvider budgetProvider) {
     return Column(
       children: [
@@ -332,6 +347,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
     );
   }
 
+  /// Helper widget to build an individual insight card.
   Widget _insightCard(String title, String desc, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -363,10 +379,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
     );
   }
 
+  /// Builds the floating action button for exporting reports.
   Widget _buildExportFAB() {
     return FloatingActionButton.extended(
       heroTag: 'fab_analytics',
-      onPressed: () {},
+      onPressed: () {
+        // TODO: Implement report export logic
+      },
       backgroundColor: AppColors.primary,
       icon: const Icon(Icons.download_rounded),
       label: const Text("Export Report"),

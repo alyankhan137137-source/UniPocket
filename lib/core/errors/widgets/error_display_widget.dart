@@ -3,9 +3,18 @@ import '../exceptions/app_exception.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_styles.dart';
 
+/// A widget that displays a user-friendly error message and an optional retry button.
+/// 
+/// This widget automatically extracts a user-friendly message if the provided
+/// [error] is an [AppException]. Otherwise, it displays a generic error message.
 class ErrorDisplayWidget extends StatelessWidget {
+  /// The error object to display.
   final dynamic error;
+  
+  /// An optional callback to trigger when the "Try Again" button is pressed.
   final VoidCallback? onRetry;
+  
+  /// Whether to display this widget as a full-screen scaffold.
   final bool isFullScreen;
 
   const ErrorDisplayWidget({

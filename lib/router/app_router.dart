@@ -8,32 +8,38 @@ import '../screens/settings/settings_screen.dart';
 import '../screens/expenses/add_expense_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/settings/privacy_policy_screen.dart';
-import '../utils/security_helper.dart';
+import '../screens/main_navigation_screen.dart';
 import 'app_routes.dart';
 
+/// Global navigator key to access the [NavigatorState] outside of the widget tree.
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
+/// The main routing configuration for the application using the [GoRouter] package.
+/// 
+/// Defines the route hierarchy, including top-level screens, shell routes for bottom
+/// navigation, and nested/standalone screens. It uses [MainNavigationScreen] as the 
+/// persistent shell for the primary app sections.
 final goRouter = GoRouter(
   initialLocation: AppRoutes.splash,
   navigatorKey: _rootNavigatorKey,
   debugLogDiagnostics: true,
   routes: [
-    // Splash Route
+    // Splash Route: Entry point for startup logic
     GoRoute(
       path: AppRoutes.splash,
       builder: (context, state) => const SplashScreen(),
     ),
 
-    // Onboarding Route
+    // Onboarding Route: First-time user experience
     GoRoute(
       path: AppRoutes.onboarding,
       builder: (context, state) => const OnboardingScreen(),
     ),
 
-    // Main Navigation Shell (Bottom Nav)
+    // Main Navigation Shell: Contains the BottomNavigationBar
     ShellRoute(
       builder: (context, state, child) {
-        return MainNavigationShell(navigationShell: child);
+        return MainNavigationScreen(child: child);
       },
       routes: [
         GoRoute(
@@ -41,50 +47,39 @@ final goRouter = GoRouter(
           builder: (context, state) => const HomeScreen(),
         ),
         GoRoute(
-          path: AppRoutes.transactions,
-          builder: (context, state) => const Center(child: Text('Transactions List')),
+          path: AppRoutes.analytics,
+          builder: (context, state) => const AnalyticsScreen(),
         ),
         GoRoute(
           path: AppRoutes.budget,
           builder: (context, state) => const BudgetScreen(),
         ),
         GoRoute(
-          path: AppRoutes.analytics,
-          builder: (context, state) => const AnalyticsScreen(),
+          path: AppRoutes.settings,
+          builder: (context, state) => const SettingsScreen(),
         ),
       ],
     ),
 
-    // Standalone routes
+    // Standalone / Modal routes
     GoRoute(
       path: AppRoutes.addTransaction,
       builder: (context, state) => const AddExpenseScreen(),
     ),
+    
+    // Deeper settings routes (can be pushed on top of the shell)
     GoRoute(
-      path: AppRoutes.settings,
-      builder: (context, state) => const SettingsScreen(),
-      routes: [
-        GoRoute(
-          path: 'categories',
-          builder: (context, state) => const Center(child: Text('Category Management')),
-        ),
-        GoRoute(
-          path: 'backup',
-          builder: (context, state) => const Center(child: Text('Backup')),
-        ),
-        GoRoute(
-          path: 'privacy-policy',
-          builder: (context, state) => const PrivacyPolicyScreen(),
-        ),
-      ],
+      path: AppRoutes.categories,
+      builder: (context, state) => const Center(child: Text('Category Management')),
+    ),
+    GoRoute(
+      path: AppRoutes.privacyPolicy,
+      builder: (context, state) => const PrivacyPolicyScreen(),
     ),
   ],
 );
 
-/// A Splash screen that handles initial app logic:
-/// 1. Check if first launch -> Go to Onboarding
-/// 2. Check if PIN set -> Show PIN Lock (logic can be here or in main)
-/// 3. Otherwise -> Go to Dashboard
+/// A Splash screen that handles initial app state logic.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -99,8 +94,9 @@ class _SplashScreenState extends State<SplashScreen> {
     _handleStartup();
   }
 
+  /// Evaluates the app state and determines the next screen.
   Future<void> _handleStartup() async {
-    // Small delay to show splash logo
+    // Show splash visual for at least 2 seconds
     await Future.delayed(const Duration(seconds: 2));
     
     final prefs = await SharedPreferences.getInstance();
@@ -112,16 +108,7 @@ class _SplashScreenState extends State<SplashScreen> {
       return;
     }
 
-    // Check if security PIN is enabled (optional additional step)
-    final hasPin = await SecurityHelper.hasPin();
-    if (hasPin) {
-      // In this setup, we go to Dashboard which might be wrapped by PIN screen in main.dart
-      // or we can add a specific PIN route.
-      // For now, let's keep it simple and route to Dashboard.
-      if (mounted) context.go(AppRoutes.dashboard);
-    } else {
-      if (mounted) context.go(AppRoutes.dashboard);
-    }
+    if (mounted) context.go(AppRoutes.dashboard);
   }
 
   @override
@@ -138,54 +125,5 @@ class _SplashScreenState extends State<SplashScreen> {
         ),
       ),
     );
-  }
-}
-
-class MainNavigationShell extends StatelessWidget {
-  const MainNavigationShell({super.key, required this.navigationShell});
-  final Widget navigationShell;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _calculateSelectedIndex(context),
-        onTap: (index) => _onItemTapped(index, context),
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt), label: 'Transactions'),
-          BottomNavigationBarItem(icon: Icon(Icons.pie_chart), label: 'Budget'),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Analytics'),
-        ],
-      ),
-    );
-  }
-
-  static int _calculateSelectedIndex(BuildContext context) {
-    final String location = GoRouterState.of(context).uri.toString();
-    if (location.contains(AppRoutes.dashboard)) return 0;
-    if (location.contains(AppRoutes.transactions)) return 1;
-    if (location.contains(AppRoutes.budget)) return 2;
-    if (location.contains(AppRoutes.analytics)) return 3;
-    return 0;
-  }
-
-  void _onItemTapped(int index, BuildContext context) {
-    switch (index) {
-      case 0:
-        context.go(AppRoutes.dashboard);
-        break;
-      case 1:
-        context.go(AppRoutes.transactions);
-        break;
-      case 2:
-        context.go(AppRoutes.budget);
-        break;
-      case 3:
-        context.go(AppRoutes.analytics);
-        break;
-    }
   }
 }

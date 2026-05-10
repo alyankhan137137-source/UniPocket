@@ -11,6 +11,11 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_styles.dart';
 import '../../../providers/theme_provider.dart';
 
+/// The main screen for managing user profile information and app preferences.
+/// 
+/// This screen allows users to view their profile, edit their name and email,
+/// change their profile picture, and configure settings such as theme,
+/// currency, and privacy mode.
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
   @override
@@ -36,6 +41,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     super.dispose();
   }
 
+  /// Synchronizes the text controllers with the current [UserProfile] data.
   void _syncControllers(UserProfile p) {
     _nameController.text  = p.name;
     _emailController.text = p.email ?? '';
@@ -66,6 +72,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  /// Builds the main content area of the profile screen.
   Widget _buildContent(UserProfile profile) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -80,6 +87,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  /// Builds the profile header containing the avatar and basic user info.
   Widget _buildHeader(UserProfile profile) {
     return Column(
       children: [
@@ -114,6 +122,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  /// Builds the form for editing profile details.
   Widget _buildEditForm(UserProfile profile) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,6 +168,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  /// Builds the preferences section with settings like theme and currency.
   Widget _buildPreferences(UserProfile profile) {
     // ✅ Get current theme from ThemeProvider
     final themeProvider = legacy.Provider.of<ThemeProvider>(context);
@@ -211,6 +221,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  /// Builds a section title with consistent padding and style.
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 10, bottom: 10, top: 20),
@@ -218,6 +229,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  /// Builds a rounded card to hold a list of preference tiles.
   Widget _buildPreferenceCard(List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
@@ -229,6 +241,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  /// Validates and saves the profile changes to the repository.
   Future<void> _saveProfile(UserProfile current) async {
     if (_nameController.text.trim().isEmpty) return;
     final updated = current.copyWith(
@@ -240,6 +253,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (mounted) setState(() => _isEditing = false);
   }
 
+  /// Opens the image picker to update the user's avatar.
   void _pickImage() async {
     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (image != null) {
@@ -251,7 +265,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
-  // ✅ Theme picker now updates ThemeProvider directly so dark mode works
+  /// Shows a modal bottom sheet for selecting the application theme.
   void _showThemePicker() {
     final themeProvider = legacy.Provider.of<ThemeProvider>(context, listen: false);
     showModalBottomSheet(
@@ -284,6 +298,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  /// Shows a currency picker to update the preferred currency.
   void _showCurrencyPicker() {
     showCurrencyPicker(
       context: context,

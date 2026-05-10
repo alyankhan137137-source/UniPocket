@@ -3,11 +3,25 @@ import 'package:lottie/lottie.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_styles.dart';
 
+/// A reusable widget to display when there is no data to show in a list or section.
+/// 
+/// This widget typically includes a visual (Lottie animation or Icon), a title,
+/// a descriptive message, and an optional action button to help users 
+/// recover from the empty state (e.g., "Add Transaction").
 class EmptyState extends StatelessWidget {
+  /// The primary heading for the empty state.
   final String title;
+  
+  /// A secondary message providing more context or instructions.
   final String description;
+  
+  /// The local path to a Lottie animation file. If null, a default icon is used.
   final String? animationPath;
+  
+  /// The text to display on the optional action button.
   final String? actionLabel;
+  
+  /// The callback function to execute when the action button is pressed.
   final VoidCallback? onActionPressed;
 
   const EmptyState({

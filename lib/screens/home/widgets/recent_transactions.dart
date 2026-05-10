@@ -10,6 +10,11 @@ import '../../../constants/app_styles.dart';
 import '../../../constants/app_constants.dart';
 import '../../expenses/add_expense_screen.dart';
 
+/// A widget that displays a list of the most recent financial transactions.
+/// 
+/// This widget uses a [ListView] to show a scrollable list of [Expense] items.
+/// It supports swipe-to-delete and swipe-to-edit actions using the [Slidable] 
+/// package. It also displays an empty state animation if no transactions exist.
 class RecentTransactions extends StatelessWidget {
   const RecentTransactions({super.key});
 
@@ -22,7 +27,9 @@ class RecentTransactions extends StatelessWidget {
           children: [
             Text("Recent Transactions", style: AppStyles.heading3),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                // TODO: Implement navigation to a full transaction history screen
+              },
               child: const Text("See All", style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
             ),
           ],
@@ -68,11 +75,12 @@ class RecentTransactions extends StatelessWidget {
   }
 }
 
+/// An individual transaction item widget with swipe actions.
 class _TransactionItem extends StatelessWidget {
   final Expense expense;
   const _TransactionItem({required this.expense});
 
-  // ✅ Show confirmation dialog before deleting
+  /// Deletes the transaction and shows a [SnackBar] with an undo option.
   void _deleteWithUndo(BuildContext context) {
     if (expense.id == null) return;
     
@@ -105,7 +113,6 @@ class _TransactionItem extends StatelessWidget {
 
     return Slidable(
       key: ValueKey(expense.id),
-      // ✅ Swipe left to delete
       endActionPane: ActionPane(
         motion: const ScrollMotion(),
         children: [
@@ -119,7 +126,6 @@ class _TransactionItem extends StatelessWidget {
           ),
         ],
       ),
-      // ✅ Swipe right to edit
       startActionPane: ActionPane(
         motion: const ScrollMotion(),
         children: [
@@ -147,7 +153,6 @@ class _TransactionItem extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // Category icon
               Container(
                 width: 48, height: 48,
                 decoration: BoxDecoration(
@@ -157,7 +162,6 @@ class _TransactionItem extends StatelessWidget {
                 child: Center(child: Text(catData['emoji'] ?? '📦', style: const TextStyle(fontSize: 24))),
               ),
               const SizedBox(width: 16),
-              // Title & category
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,7 +174,6 @@ class _TransactionItem extends StatelessWidget {
                   ],
                 ),
               ),
-              // Amount & date
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [

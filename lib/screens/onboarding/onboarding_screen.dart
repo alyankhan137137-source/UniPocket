@@ -4,15 +4,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lottie/lottie.dart';
 import 'package:currency_picker/currency_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_styles.dart';
 import '../../providers/settings_provider.dart';
-import '../main_navigation_screen.dart';
 import '../../utils/animations.dart';
 import '../../features/profile/providers/profile_provider.dart';
 import '../../features/profile/models/user_profile.dart';
+import '../../router/app_routes.dart';
 import 'package:uuid/uuid.dart';
 
+/// A screen that guides new users through the app's features and initial setup.
+/// 
+/// This screen uses a [PageView] to show introduction slides and a final 
+/// setup page where users can enter their name and select their primary currency.
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
   @override
@@ -24,6 +29,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final TextEditingController _nameController = TextEditingController();
   int _currentPage = 0;
 
+  /// Data for the introductory slides.
   final List<_OnboardingData> _pages = [
     _OnboardingData("Track Every Expense",
         "Log your daily transactions in seconds and stay on top of your spending.", AppColors.primary),
@@ -40,6 +46,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     super.dispose();
   }
 
+  /// Finalizes the onboarding process, saves the user's profile, and navigates to the home screen.
   Future<void> _completeOnboarding() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
@@ -63,10 +70,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     await prefs.setBool('is_first_launch', false);
 
     if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-      );
+      // Use GoRouter for navigation to ensure compatibility with the app's routing configuration.
+      context.go(AppRoutes.dashboard);
     }
   }
 
@@ -92,6 +97,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
+  /// Builds the top bar with skip button and page indicators.
   Widget _buildTopBar() {
     return SafeArea(
       child: Padding(
@@ -124,6 +130,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
+  /// Builds an individual introduction page.
   Widget _buildPage(_OnboardingData data) {
     return Padding(
       padding: const EdgeInsets.all(40),
@@ -143,6 +150,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
+  /// Builds the setup page where the user configures their profile.
   Widget _buildSetupPage() {
     final settingsProvider = context.watch<SettingsProvider>();
     return SingleChildScrollView(
@@ -158,7 +166,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const Text("Let's set up your profile to get started.",
               textAlign: TextAlign.center, style: AppStyles.body1),
           const SizedBox(height: 40),
-          // ✅ Name input
           TextField(
             controller: _nameController,
             textCapitalization: TextCapitalization.words,
@@ -168,7 +175,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          // Currency picker
           AppAnimations.scaleOnPress(
             onTap: () => showCurrencyPicker(
               context: context,
@@ -204,6 +210,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
+  /// Builds the navigation controls at the bottom of the screen.
   Widget _buildBottomControls() {
     return Positioned(
       bottom: 50, left: 40, right: 40,
@@ -234,6 +241,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 }
 
+/// Helper class to store onboarding slide content.
 class _OnboardingData {
   final String title, description;
   final Color color;

@@ -1,12 +1,27 @@
 import 'dart:convert';
 
 /// Represents user-specific application preferences and security settings.
+/// 
+/// This model persists choices like the primary currency, UI theme, 
+/// and security features (notifications and biometrics).
 class UserSettings {
+  /// The ISO currency code used globally in the app (e.g., 'USD').
   final String currency;
-  final String theme; // 'light', 'dark', 'system'
+  
+  /// The visual theme preference: 'light', 'dark', or 'system'.
+  final String theme; 
+  
+  /// The locale or language code for the UI (e.g., 'en').
   final String language;
-  final double budgetAlertPercentage; // e.g., 80.0 for 80%
+  
+  /// The percentage threshold (0.0 to 100.0) at which the user 
+  /// should be notified about budget limits.
+  final double budgetAlertPercentage; 
+  
+  /// Whether push notifications for budget alerts and summaries are enabled.
   final bool enableNotifications;
+  
+  /// Whether biometric authentication (Fingerprint/FaceID) is required to open the app.
   final bool enableBiometric;
 
   UserSettings({
@@ -18,7 +33,7 @@ class UserSettings {
     required this.enableBiometric,
   });
 
-  /// Default settings for a new user.
+  /// Provides the standard default configuration for a new user session.
   factory UserSettings.defaultSettings() {
     return UserSettings(
       currency: 'USD',
@@ -30,7 +45,7 @@ class UserSettings {
     );
   }
 
-  /// Creates a copy of UserSettings with updated fields.
+  /// Creates a copy of this [UserSettings] with the given fields replaced.
   UserSettings copyWith({
     String? currency,
     String? theme,
@@ -49,7 +64,7 @@ class UserSettings {
     );
   }
 
-  /// Converts Map from SharedPreferences/SQLite to UserSettings object.
+  /// Creates a [UserSettings] instance from a storage map (SharedPreferences/SQLite).
   factory UserSettings.fromMap(Map<String, dynamic> map) {
     return UserSettings(
       currency: map['currency'] ?? 'USD',
@@ -61,7 +76,7 @@ class UserSettings {
     );
   }
 
-  /// Converts UserSettings object to Map for storage.
+  /// Converts the [UserSettings] instance into a map for storage.
   Map<String, dynamic> toMap() {
     return {
       'currency': currency,
@@ -73,10 +88,10 @@ class UserSettings {
     };
   }
 
-  /// JSON serialization
+  /// Serializes the [UserSettings] instance to a JSON string.
   String toJson() => json.encode(toMap());
 
-  /// JSON deserialization
+  /// Deserializes a [UserSettings] instance from a JSON string.
   factory UserSettings.fromJson(String source) => UserSettings.fromMap(json.decode(source));
 
   @override

@@ -2,48 +2,61 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/expense_model.dart';
 
-/// Handles all smart UX features:
-/// - Remember last used category
-/// - Duplicate detection
-/// - Smart suggestions based on title
-/// - Demo data generation
-/// - Search history
-/// - Haptic feedback
+/// A utility class that implements "smart" UX enhancements to improve efficiency and feedback.
+/// 
+/// Features include:
+/// - Remembering the last used category for each transaction type.
+/// - Providing category suggestions based on transaction titles.
+/// - Detecting potential duplicate transactions.
+/// - Managing search history.
+/// - Providing consistent haptic feedback.
 class SmartFeatures {
   static const _lastCategoryKey = 'last_used_category_';
   static const _searchHistoryKey = 'search_history';
   static const _demoDataKey = 'demo_data_generated';
 
   // ── Haptic Feedback ──────────────────────────────────────────────
+  
+  /// Triggers a light haptic tap for subtle interactions.
   static void lightTap() {
     HapticFeedback.lightImpact();
   }
 
+  /// Triggers a medium haptic tap for more significant interactions.
   static void mediumTap() {
     HapticFeedback.mediumImpact();
   }
 
+  /// Triggers a specific haptic pattern to signal a successful operation.
   static void successVibrate() {
     HapticFeedback.selectionClick();
   }
 
+  /// Triggers a standard vibration to alert the user of an error or warning.
   static void errorVibrate() {
     HapticFeedback.vibrate();
   }
 
   // ── Remember Last Used Category ──────────────────────────────────
+  
+  /// Retrieves the last category name used for a specific transaction [type] ('income' or 'expense').
   static Future<String?> getLastCategory(String type) async {
     final p = await SharedPreferences.getInstance();
     return p.getString('$_lastCategoryKey$type');
   }
 
+  /// Persists the last [category] used for a specific transaction [type].
   static Future<void> saveLastCategory(String type, String category) async {
     final p = await SharedPreferences.getInstance();
     await p.setString('$_lastCategoryKey$type', category);
   }
 
   // ── Smart Title Suggestions ──────────────────────────────────────
-  // Auto-suggest category based on title keywords
+  
+  /// Analyzes a transaction [title] and [type] to suggest a likely category.
+  /// 
+  /// Uses keyword matching to identify common categories like 'Food & Dining', 
+  /// 'Transport', or 'Salary'. Returns null if no match is found.
   static String? suggestCategory(String title, String type) {
     final t = title.toLowerCase();
     if (type == 'expense') {
@@ -75,10 +88,16 @@ class SmartFeatures {
     return null;
   }
 
+  /// Internal helper to check if a text contains any of the provided keywords.
   static bool _matches(String text, List<String> keywords) =>
       keywords.any((k) => text.contains(k));
 
   // ── Duplicate Detection ──────────────────────────────────────────
+  
+  /// Searches a list of [expenses] for a transaction that matches the given 
+  /// parameters within a 1-day time window.
+  /// 
+  /// Useful for preventing accidental double-entry of transactions.
   static Expense? findDuplicate(List<Expense> expenses, {
     required String title,
     required int amountCents,
@@ -95,37 +114,46 @@ class SmartFeatures {
   }
 
   // ── Search History ───────────────────────────────────────────────
+  
+  /// Retrieves the list of recent search queries from local storage.
   static Future<List<String>> getSearchHistory() async {
     final p = await SharedPreferences.getInstance();
     return p.getStringList(_searchHistoryKey) ?? [];
   }
 
+  /// Adds a new [query] to the search history, ensuring no duplicates 
+  /// and limiting the history size to 10 entries.
   static Future<void> addToSearchHistory(String query) async {
     if (query.trim().isEmpty) return;
     final p = await SharedPreferences.getInstance();
     final history = p.getStringList(_searchHistoryKey) ?? [];
-    history.remove(query); // remove duplicate
+    history.remove(query); // remove duplicate if exists
     history.insert(0, query);
     // Keep only last 10
     await p.setStringList(_searchHistoryKey, history.take(10).toList());
   }
 
+  /// Clears all saved search history.
   static Future<void> clearSearchHistory() async {
     final p = await SharedPreferences.getInstance();
     await p.remove(_searchHistoryKey);
   }
 
   // ── Demo Data Generation ─────────────────────────────────────────
+  
+  /// Checks if demo data has already been generated for the current installation.
   static Future<bool> isDemoDataGenerated() async {
     final p = await SharedPreferences.getInstance();
     return p.getBool(_demoDataKey) ?? false;
   }
 
+  /// Marks that demo data has been successfully generated.
   static Future<void> markDemoDataGenerated() async {
     final p = await SharedPreferences.getInstance();
     await p.setBool(_demoDataKey, true);
   }
 
+  /// Returns a curated list of sample transactions for demonstration purposes.
   static List<Map<String, dynamic>> generateDemoExpenses() {
     final now = DateTime.now();
     return [

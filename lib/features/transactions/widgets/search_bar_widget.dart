@@ -5,6 +5,11 @@ import '../providers/filter_provider.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_styles.dart';
 
+/// A search bar widget that provides real-time transaction searching with debouncing.
+/// 
+/// This widget contains a [TextField] that updates the [FilterProvider] as 
+/// the user types. It uses a 300ms debounce to prevent excessive database 
+/// queries during rapid input.
 class SearchBarWidget extends StatefulWidget {
   const SearchBarWidget({super.key});
 
@@ -23,6 +28,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
     super.dispose();
   }
 
+  /// Handles search text changes and applies debouncing.
   void _onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), () {
@@ -48,7 +54,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
           suffixIcon: IconButton(
             icon: const Icon(Icons.tune, color: AppColors.primary),
             onPressed: () {
-              // Open Filter Bottom Sheet logic will go here
+              // TODO: Implement navigation or logic to open Filter Bottom Sheet
             },
           ),
           border: InputBorder.none,

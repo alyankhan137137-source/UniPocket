@@ -1,15 +1,35 @@
 import 'dart:convert';
 
-/// Represents a budget set by the user for a specific category.
+/// Represents a budget configuration set by the user for a specific category.
+/// 
+/// Budgets track spending over a defined [period] (e.g., monthly) and help
+/// users stay within their financial limits.
 class Budget {
+  /// Unique identifier for the budget record.
   final int? id;
-  final String categoryId; // References CategoryModel.id (String UUID)
-  final int amount; // Stored as integer minor units (cents)
-  final String period; // 'daily', 'weekly', 'monthly', 'yearly'
+  
+  /// The ID of the category this budget applies to. 
+  /// References [CategoryModel.id].
+  final String categoryId; 
+  
+  /// The total allowed budget amount stored in minor units (e.g., cents).
+  final int amount; 
+  
+  /// The frequency of the budget cycle: 'daily', 'weekly', 'monthly', or 'yearly'.
+  final String period; 
+  
+  /// The start date of the current budget cycle.
   final DateTime startDate;
+  
+  /// The end date of the current budget cycle.
   final DateTime endDate;
+  
+  /// Whether the budget is currently being tracked.
   final bool isActive;
-  final int spent; // Calculated field (not stored in DB directly but used in UI)
+  
+  /// The total amount spent in this category during the budget period.
+  /// Note: This is a calculated field used in the UI and not stored in the database.
+  final int spent; 
 
   Budget({
     this.id,
@@ -22,7 +42,7 @@ class Budget {
     this.spent = 0,
   });
 
-  /// Creates a copy of Budget with updated fields.
+  /// Creates a copy of this [Budget] with the given fields replaced.
   Budget copyWith({
     int? id,
     String? categoryId,
@@ -45,7 +65,7 @@ class Budget {
     );
   }
 
-  /// Converts Map from SQLite to Budget object.
+  /// Creates a [Budget] instance from a database map.
   factory Budget.fromMap(Map<String, dynamic> map) {
     return Budget(
       id: map['id'],
@@ -59,7 +79,7 @@ class Budget {
     );
   }
 
-  /// Converts Budget object to Map for SQLite.
+  /// Converts the [Budget] instance into a map for database storage.
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -72,7 +92,7 @@ class Budget {
     };
   }
 
-  /// JSON serialization
+  /// Serializes the [Budget] instance to a JSON string.
   String toJson() => json.encode(toMap());
 
   @override
@@ -80,9 +100,9 @@ class Budget {
     return 'Budget(id: $id, categoryId: $categoryId, amount: $amount, period: $period)';
   }
 
-  /// Calculates percentage of budget spent.
+  /// Returns the percentage of the budget that has been consumed.
   double get percentSpent => amount > 0 ? (spent / amount) * 100 : 0.0;
 
-  /// Returns true if budget is exceeded.
+  /// Returns true if the current spending exceeds the budget amount.
   bool get isExceeded => spent > amount;
 }

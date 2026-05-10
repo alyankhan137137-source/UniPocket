@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../providers/expense_provider.dart';
 import '../../providers/budget_provider.dart';
 import '../../providers/category_provider.dart';
-import '../../providers/navigation_provider.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_styles.dart';
 import '../../features/profile/providers/profile_provider.dart';
-import '../expenses/add_expense_screen.dart';
+import '../../router/app_routes.dart';
 import 'widgets/balance_card.dart';
 import 'widgets/recent_transactions.dart';
 
+/// The primary dashboard screen for the application.
+///
+/// This screen provides a high-level overview of the user's finances,
+/// including current balance, quick actions for adding transactions,
+/// spending progress, and recent activity. It uses [ConsumerStatefulWidget]
+/// to react to profile and financial data changes.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
   @override
@@ -22,6 +28,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    // Initialize data loading on first frame
     Future.microtask(() async {
       if (!mounted) return;
       final ep = context.read<ExpenseProvider>();
@@ -35,8 +42,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final navProvider = context.read<NavigationProvider>();
-    // ✅ Get real user name
+    // Watch profile state to display personalized greeting
     final profileAsync = ref.watch(profileNotifierProvider);
     final userName = (profileAsync.value?.name.isNotEmpty == true) ? profileAsync.value!.name : 'there';
     final initials = userName.isNotEmpty
@@ -70,7 +76,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             actions: [
               IconButton(
                 icon: const Icon(Icons.settings_outlined, color: AppColors.textPrimary),
-                onPressed: () => context.read<NavigationProvider>().switchToSettings(),
+                onPressed: () => context.push(AppRoutes.settings),
               ),
               const SizedBox(width: 10),
             ],
@@ -84,15 +90,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   const SizedBox(height: 20),
                   const BalanceCard(),
                   const SizedBox(height: 30),
-                  _buildQuickActions(context, navProvider),
+                  _buildQuickActions(context),
                   const SizedBox(height: 30),
-                  _buildSectionHeader(context, "Spending Overview", () => navProvider.switchToAnalytics()),
+                  _buildSectionHeader(context, "Spending Overview", () => context.go(AppRoutes.analytics)),
                   const SizedBox(height: 15),
                   _buildSpendingOverview(context),
                   const SizedBox(height: 30),
                   const RecentTransactions(),
                   const SizedBox(height: 30),
-                  _buildSectionHeader(context, "Budget Status", () => navProvider.switchToBudget()),
+                  _buildSectionHeader(context, "Budget Status", () => context.go(AppRoutes.budget)),
                   const SizedBox(height: 15),
                   _buildBudgetStatus(context),
                   const SizedBox(height: 100),
@@ -105,20 +111,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildQuickActions(BuildContext context, NavigationProvider nav) {
+  /// Builds the horizontal row of quick action buttons.
+  Widget _buildQuickActions(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _quickAction("Add Income", Icons.add_circle_outline, Colors.green, () =>
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const AddExpenseScreen()))),
+            context.push(AppRoutes.addTransaction)),
         _quickAction("Add Expense", Icons.remove_circle_outline, Colors.orange, () =>
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const AddExpenseScreen()))),
-        _quickAction("Analytics", Icons.pie_chart_outline, Colors.blue, () => nav.switchToAnalytics()),
-        _quickAction("Budgets", Icons.grid_view, Colors.purple, () => nav.switchToBudget()),
+            context.push(AppRoutes.addTransaction)),
+        _quickAction("Analytics", Icons.pie_chart_outline, Colors.blue, () => context.go(AppRoutes.analytics)),
+        _quickAction("Budgets", Icons.grid_view, Colors.purple, () => context.go(AppRoutes.budget)),
       ],
     );
   }
 
+  /// Builds a single quick action item with an icon and label.
   Widget _quickAction(String label, IconData icon, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
@@ -140,6 +148,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  /// Builds a section header with a title and a "See All" action.
   Widget _buildSectionHeader(BuildContext context, String title, VoidCallback onTap) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -150,6 +159,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  /// Builds the spending overview horizontal list.
   Widget _buildSpendingOverview(BuildContext context) {
     final provider = context.watch<ExpenseProvider>();
     return SingleChildScrollView(
@@ -165,6 +175,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  /// Builds a card for the spending overview.
   Widget _overviewCard(String label, double amount, double progress) {
     return Container(
       width: 160,
@@ -196,6 +207,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  /// Builds the budget status section showing progress for the top 3 budgets.
   Widget _buildBudgetStatus(BuildContext context) {
     final budgetProvider = context.watch<BudgetProvider>();
     if (budgetProvider.budgets.isEmpty) {

@@ -1,14 +1,44 @@
-enum CategoryType { income, expense, both }
+/// Defines the classification for transactions (e.g., Food, Transport).
+enum CategoryType { 
+  /// Only available for income transactions.
+  income, 
+  /// Only available for expense transactions.
+  expense, 
+  /// Available for both income and expense transactions.
+  both 
+}
 
+/// A model representing a transaction category.
+/// 
+/// Categories help organize expenses and income for better reporting 
+/// and budgeting. Each category has a unique identifier, a display name, 
+/// an icon (emoji), and a color.
 class CategoryModel {
+  /// Unique identifier for the category (UUID).
   final String id;
+  
+  /// The display name of the category (e.g., "Groceries").
   final String name;
+  
+  /// The emoji or icon string representing the category visually.
   final String icon;
+  
+  /// The integer value of the category's primary color.
   final int color;
+  
+  /// The type of transactions this category can be applied to.
   final CategoryType type;
+  
+  /// Whether this is a system-provided default category.
   final bool isDefault;
+  
+  /// Whether the category is currently available for use.
   final bool isActive;
+  
+  /// The preferred display order in lists.
   final int sortOrder;
+  
+  /// Timestamp of when the category was created.
   final DateTime createdAt;
 
   CategoryModel({
@@ -23,6 +53,7 @@ class CategoryModel {
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
+  /// Creates a copy of this [CategoryModel] with the given fields replaced.
   CategoryModel copyWith({
     String? id,
     String? name,
@@ -47,6 +78,7 @@ class CategoryModel {
     );
   }
 
+  /// Converts the [CategoryModel] instance into a map for database storage.
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -61,6 +93,7 @@ class CategoryModel {
     };
   }
 
+  /// Creates a [CategoryModel] instance from a database map.
   factory CategoryModel.fromMap(Map<String, dynamic> map) {
     return CategoryModel(
       id: map['id'],

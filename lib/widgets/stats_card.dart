@@ -2,12 +2,28 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_styles.dart';
 
+/// A card widget that displays a summary statistic with an icon and optional trend indicator.
+/// 
+/// This widget is commonly used on dashboards to show metrics like total income, 
+/// total expenses, or net savings. It includes an icon for quick identification 
+/// and a trend percentage to show changes over time.
 class StatsCard extends StatelessWidget {
+  /// The descriptive label for the statistic (e.g., "Total Income").
   final String label;
+  
+  /// The formatted string representation of the numeric value.
   final String value;
+  
+  /// The icon representing the statistic.
   final IconData icon;
+  
+  /// An optional trend string (e.g., "+12%") showing the change relative to a previous period.
   final String? trend;
+  
+  /// Whether the trend is positive (up) or negative (down), which determines the trend icon and color.
   final bool isTrendUp;
+  
+  /// The primary color for the icon and its background. Defaults to [AppColors.primary].
   final Color? color;
 
   const StatsCard({

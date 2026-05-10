@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
+/// A reusable widget to display a centered loading indicator with an optional message.
+/// 
+/// This widget provides a consistent loading experience throughout the app. 
+/// It can be used as a standalone widget within a screen or as a full-page overlay.
 class LoadingWidget extends StatelessWidget {
+  /// Whether to display the loader as a full-page scaffold with a semi-transparent background.
   final bool isFullPage;
+  
+  /// An optional message to display below the loading indicator (e.g., "Processing...").
   final String? message;
 
   const LoadingWidget({
@@ -47,10 +54,18 @@ class LoadingWidget extends StatelessWidget {
   }
 }
 
-/// A simple Shimmer-like loading effect for lists
+/// A simple placeholder widget that simulates a "shimmer" effect during content loading.
+/// 
+/// Used to build skeleton loaders for lists and cards, giving users a visual hint 
+/// of the content structure while data is being fetched.
 class ShimmerLoading extends StatelessWidget {
+  /// The width of the shimmer placeholder.
   final double width;
+  
+  /// The height of the shimmer placeholder.
   final double height;
+  
+  /// The corner radius of the shimmer placeholder.
   final double borderRadius;
 
   const ShimmerLoading({
@@ -69,8 +84,8 @@ class ShimmerLoading extends StatelessWidget {
         color: Colors.grey.shade200,
         borderRadius: BorderRadius.circular(borderRadius),
       ),
-      // In a real app, you'd use the 'shimmer' package here.
-      // For now, we use a subtle solid color to simulate the skeleton.
+      // Note: This is a static implementation. For actual animation, 
+      // consider integrating the 'shimmer' package.
     );
   }
 }

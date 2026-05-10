@@ -3,9 +3,18 @@ import 'package:flutter/material.dart';
 import '../models/notification_payload.dart';
 import '../../../models/budget_model.dart';
 
+/// A service responsible for managing local notifications in the application.
+/// 
+/// This class handles initialization of the [FlutterLocalNotificationsPlugin],
+/// channel configuration for Android, and provides high-level methods to 
+/// trigger specific alerts like budget warnings.
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
 
+  /// Initializes the notification service with platform-specific settings.
+  /// 
+  /// Sets up Android and iOS initialization parameters and configures the 
+  /// callback for when a notification is tapped.
   static Future<void> init() async {
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -21,7 +30,6 @@ class NotificationService {
       iOS: iosSettings,
     );
 
-    // FIX: Using named parameter 'settings' and 'onDidReceiveNotificationResponse'
     await _plugin.initialize(
       settings: initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse details) {
@@ -35,6 +43,7 @@ class NotificationService {
     _createChannels();
   }
 
+  /// Creates notification channels required for Android 8.0+.
   static void _createChannels() async {
     const budgetChannel = AndroidNotificationChannel(
       'budget_alerts',
@@ -59,6 +68,10 @@ class NotificationService {
         ?.createNotificationChannel(insightChannel);
   }
 
+  /// Shows a notification warning the user about their budget status.
+  /// 
+  /// [budget] is the budget object the alert refers to.
+  /// [percentage] is the current spending percentage relative to the limit.
   static Future<void> showBudgetAlert(Budget budget, double percentage) async {
     String title = "Budget Alert";
     String body = "You've reached ${percentage.toStringAsFixed(0)}% of your budget.";
@@ -86,7 +99,6 @@ class NotificationService {
 
     const NotificationDetails details = NotificationDetails(android: androidDetails);
 
-    // FIX: Using named parameters 'id', 'title', 'body', 'notificationDetails', 'payload'
     await _plugin.show(
       id: budget.id ?? 0,
       title: title,
@@ -96,7 +108,9 @@ class NotificationService {
     );
   }
 
+  /// Internal handler for notification tap events.
   static void _handleNotificationTap(NotificationPayload payload) {
+    // TODO: Implement navigation logic based on payload type
     debugPrint("Tapped notification of type: ${payload.type}");
   }
 }

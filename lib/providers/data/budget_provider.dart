@@ -8,13 +8,20 @@ import 'category_provider.dart';
 
 part 'budget_provider.g.dart';
 
+/// Provides an instance of [BudgetRepository] initialized with [DatabaseHelper].
 @riverpod
 BudgetRepository budgetRepository(BudgetRepositoryRef ref) {
   return BudgetRepository(DatabaseHelper());
 }
 
+/// A notifier that manages the state of the user's budgets.
+/// 
+/// This class handles fetching budgets from the repository, calculating current
+/// spending against each budget by aggregating transactions, and providing
+/// CRUD operations for budget management.
 @riverpod
 class BudgetNotifier extends _$BudgetNotifier {
+  /// Initializes the budget list by watching related transaction and category providers.
   @override
   Future<List<Budget>> build() async {
     // We watch other providers to ensure this list updates when they change
@@ -24,6 +31,7 @@ class BudgetNotifier extends _$BudgetNotifier {
     return _fetchBudgets();
   }
 
+  /// Internal method to fetch budgets and calculate their current spending status.
   Future<List<Budget>> _fetchBudgets() async {
     final repo = ref.read(budgetRepositoryProvider);
     final budgets = await repo.getBudgets();
@@ -64,6 +72,7 @@ class BudgetNotifier extends _$BudgetNotifier {
     return budgets;
   }
 
+  /// Adds a new [budget] and refreshes the budget list.
   Future<void> addBudget(Budget budget) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
@@ -73,6 +82,7 @@ class BudgetNotifier extends _$BudgetNotifier {
     });
   }
 
+  /// Updates an existing [budget] and refreshes the budget list.
   Future<void> updateBudget(Budget budget) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
@@ -82,6 +92,7 @@ class BudgetNotifier extends _$BudgetNotifier {
     });
   }
 
+  /// Deletes a budget by its [id] and refreshes the budget list.
   Future<void> deleteBudget(int id) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {

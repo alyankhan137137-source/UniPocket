@@ -2,10 +2,19 @@ import '../../../database/database_helper.dart';
 import '../../../models/expense_model.dart';
 import '../models/recurrence_frequency.dart';
 
+/// A service that handles the logic for generating transactions from recurring templates.
+/// 
+/// This service iterates through active recurring templates and determines if 
+/// new transactions need to be created based on the current date and the 
+/// template's frequency and interval.
 class RecurringService {
   final DatabaseHelper _dbHelper = DatabaseHelper();
 
-  /// Checks and generates all due transactions from active recurring templates
+  /// Checks and generates all due transactions from active recurring templates.
+  /// 
+  /// This method is designed to catch up on missed transactions if the app 
+  /// hasn't been opened for a while. It returns the total count of 
+  /// transactions generated.
   Future<int> generateDueTransactions() async {
     final activeRecurring = await _dbHelper.getActiveRecurring();
     final now = DateTime.now();
@@ -19,7 +28,7 @@ class RecurringService {
         // 1. Generate the actual transaction
         final expense = Expense(
           title: recurring.templateTitle,
-          amount: recurring.amount, // FIX: Use integer cents directly
+          amount: recurring.amount, 
           category: recurring.categoryId,
           date: nextDue,
           type: recurring.type,
@@ -51,6 +60,10 @@ class RecurringService {
     return count;
   }
 
+  /// Calculates the next occurrence date based on frequency and interval.
+  /// 
+  /// Handles edge cases like leap years or varying month lengths by 
+  /// capping the day at 28 for monthly and yearly recurrences.
   DateTime _calculateNextDate(DateTime current, RecurrenceFrequency freq, int interval) {
     switch (freq) {
       case RecurrenceFrequency.daily:

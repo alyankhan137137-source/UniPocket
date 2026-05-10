@@ -2,18 +2,46 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_styles.dart';
 
+/// A standardized text input field for the application.
+/// 
+/// This widget provides a consistent look and feel for all text entries, 
+/// including custom styling for borders, padding, and icons. It supports
+/// validation, different keyboard types, and password masking.
 class CustomInput extends StatelessWidget {
+  /// Controller for the text being edited.
   final TextEditingController? controller;
+  
+  /// The label displayed above the input field.
   final String label;
+  
+  /// Optional placeholder text shown inside the field.
   final String? hint;
+  
+  /// Widget to display at the beginning of the input field (e.g., an Icon).
   final Widget? prefixIcon;
+  
+  /// Widget to display at the end of the input field (e.g., a clear button or eye icon).
   final Widget? suffixIcon;
+  
+  /// A function that takes the current text and returns an error message if invalid.
   final String? Function(String?)? validator;
+  
+  /// The type of keyboard to display (e.g., email, numeric, phone).
   final TextInputType keyboardType;
+  
+  /// Whether to hide the text being entered (used for passwords).
   final bool obscureText;
+  
+  /// The maximum number of characters allowed.
   final int? maxLength;
+  
+  /// The maximum number of lines the input can expand to.
   final int maxLines;
+  
+  /// Callback triggered whenever the text content changes.
   final Function(String)? onChanged;
+  
+  /// Whether the field should automatically focus when it appears.
   final bool autofocus;
 
   const CustomInput({

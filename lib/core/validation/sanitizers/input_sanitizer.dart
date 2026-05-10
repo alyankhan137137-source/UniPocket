@@ -1,7 +1,15 @@
+/// A utility class for cleaning and normalizing user input.
+///
+/// This class provides methods to prevent common issues like XSS,
+/// unnecessary whitespace, and overly long inputs by sanitizing strings
+/// before they are processed or saved.
 class InputSanitizer {
   InputSanitizer._();
 
   /// Removes HTML tags, trims whitespace, and normalizes spaces.
+  ///
+  /// [input] is the raw string to sanitize.
+  /// [maxLength] is an optional limit to the length of the resulting string.
   static String sanitizeString(String input, {int? maxLength}) {
     String result = input;
 
@@ -26,6 +34,9 @@ class InputSanitizer {
   }
 
   /// Sanitizes a list of tags.
+  ///
+  /// Trims each tag, removes empty ones, and limits the total number of tags
+  /// as well as individual tag lengths.
   static List<String> sanitizeTags(List<String> tags, {int maxTags = 10, int maxTagLength = 30}) {
     return tags
         .map((tag) => sanitizeString(tag, maxLength: maxTagLength))
@@ -35,8 +46,10 @@ class InputSanitizer {
   }
 
   /// Basic numeric string cleanup.
+  ///
+  /// Removes all characters except digits, dots, and commas.
   static String sanitizeNumeric(String input) {
-    // Allow digits, one dot or one comma (will be converted to dot later)
+    // Allow digits, one dot or one comma
     return input.replaceAll(RegExp(r'[^0-9.,]'), '');
   }
 }

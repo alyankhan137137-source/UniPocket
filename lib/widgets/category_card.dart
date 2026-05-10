@@ -2,11 +2,25 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_styles.dart';
 
+/// A card widget that displays a transaction category with an icon and label.
+/// 
+/// This widget is used in category selection grids or lists. it features 
+/// an animated selection state that changes its background color, border, 
+/// and shadow when [isSelected] is true.
 class CategoryCard extends StatelessWidget {
+  /// The display name of the category (e.g., "Food").
   final String label;
+  
+  /// The emoji or icon string representing the category.
   final String icon;
+  
+  /// Whether this category is currently selected by the user.
   final bool isSelected;
+  
+  /// Callback function triggered when the user taps on the card.
   final VoidCallback onTap;
+  
+  /// The primary color used for the selection state. Defaults to [AppColors.primary].
   final Color? color;
 
   const CategoryCard({

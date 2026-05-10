@@ -3,10 +3,18 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter/material.dart';
 
+/// A utility class to manage local notifications for the application.
+/// 
+/// This class handles the initialization of the notification plugin, 
+/// scheduling recurring notifications (like daily summaries), 
+/// and displaying immediate alerts (like budget warnings).
 class NotificationHelper {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  /// Initializes the notification settings for Android and iOS.
+  /// 
+  /// Also initializes the timezone database required for scheduled notifications.
   static Future<void> init() async {
     tz.initializeTimeZones();
     
@@ -30,6 +38,10 @@ class NotificationHelper {
     );
   }
 
+  /// Displays an immediate budget alert notification.
+  /// 
+  /// [category] is the name of the budget category.
+  /// [percentage] is the current spending percentage relative to the budget limit.
   static Future<void> showBudgetAlert({
     required String category,
     required double percentage,
@@ -55,6 +67,9 @@ class NotificationHelper {
     );
   }
 
+  /// Schedules a recurring daily notification to remind the user to check their spending.
+  /// 
+  /// [time] is the time of day when the notification should be triggered.
   static Future<void> scheduleDailySummary({required TimeOfDay time}) async {
     await _notificationsPlugin.zonedSchedule(
       id: 1,
@@ -73,6 +88,9 @@ class NotificationHelper {
     );
   }
 
+  /// Calculates the next [tz.TZDateTime] occurrence for a given [TimeOfDay].
+  /// 
+  /// If the time has already passed today, it schedules it for tomorrow.
   static tz.TZDateTime _nextInstanceOfTime(TimeOfDay time) {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
     tz.TZDateTime scheduledDate = tz.TZDateTime(
@@ -83,6 +101,7 @@ class NotificationHelper {
     return scheduledDate;
   }
 
+  /// Cancels all active and scheduled notifications.
   static Future<void> cancelAll() async {
     await _notificationsPlugin.cancelAll();
   }

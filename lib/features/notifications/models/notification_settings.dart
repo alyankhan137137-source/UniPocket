@@ -1,15 +1,38 @@
 import 'package:flutter/material.dart';
 
+/// Configuration for the application's notification system.
+/// 
+/// This class defines user preferences for different types of alerts, 
+/// delivery schedules, and quiet hours.
 class NotificationSettings {
+  /// Global toggle for all notifications.
   final bool masterEnabled;
+  
+  /// Whether to receive alerts when budget limits are approached or exceeded.
   final bool budgetAlertsEnabled;
+  
+  /// A list of percentage thresholds (0.0 to 1.0+) at which budget alerts are triggered.
   final List<double> alertThresholds;
+  
+  /// Whether to receive a daily end-of-day financial summary.
   final bool dailySummaryEnabled;
+  
+  /// The time of day when the daily summary should be delivered.
   final TimeOfDay dailySummaryTime;
+  
+  /// Whether to receive weekly financial insights and reports.
   final bool weeklyInsightsEnabled;
+  
+  /// Whether to receive reminders for upcoming bills or recurring payments.
   final bool billRemindersEnabled;
+  
+  /// Number of days in advance to send bill reminders.
   final int billReminderAdvanceDays;
+  
+  /// The start of the period during which notifications should be silenced.
   final TimeOfDay? quietHoursStart;
+  
+  /// The end of the period during which notifications should be silenced.
   final TimeOfDay? quietHoursEnd;
 
   NotificationSettings({
@@ -25,6 +48,7 @@ class NotificationSettings {
     this.quietHoursEnd,
   });
 
+  /// Creates a copy of this [NotificationSettings] with the given fields replaced.
   NotificationSettings copyWith({
     bool? masterEnabled,
     bool? budgetAlertsEnabled,
@@ -51,6 +75,7 @@ class NotificationSettings {
     );
   }
 
+  /// Converts the [NotificationSettings] instance into a [Map] for storage.
   Map<String, dynamic> toMap() {
     return {
       'masterEnabled': masterEnabled,

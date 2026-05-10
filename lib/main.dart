@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart' as legacy_provider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'providers/expense_provider.dart';
 import 'providers/budget_provider.dart';
 import 'providers/category_provider.dart';
@@ -16,7 +15,7 @@ import 'features/notifications/services/notification_service.dart';
 import 'router/app_router.dart';
 import 'core/errors/handlers/global_error_handler.dart';
 import 'database/database_helper.dart';
-import 'constants/app_colors.dart';
+import 'constants/app_themes.dart';
 
 /// The entry point of the PocketTrack Lite application.
 ///
@@ -82,7 +81,7 @@ void main() async {
 /// Responsible for:
 /// - Configuring the [MaterialApp.router] with [GoRouter] logic.
 /// - Synchronizing the application's visual theme with [ThemeProvider].
-/// - Defining the global [ThemeData] for both Light and Dark modes.
+/// - Applying centralized theme definitions from [AppThemes].
 class MyApp extends StatelessWidget {
   /// Creates the root application widget.
   const MyApp({super.key});
@@ -102,51 +101,11 @@ class MyApp extends StatelessWidget {
       // Theme configuration based on user settings.
       themeMode: themeProvider.themeMode,
 
-      // Light Theme Definition
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.light,
-        scaffoldBackgroundColor: AppColors.background,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primary,
-          primary: AppColors.primary,
-          secondary: AppColors.secondary,
-          surface: AppColors.surface,
-          error: AppColors.error,
-          brightness: Brightness.light,
-        ),
-        // Apply Google Fonts (Poppins) globally across the app.
-        textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          iconTheme: IconThemeData(color: AppColors.textPrimary),
-        ),
-        cardTheme: const CardThemeData(color: AppColors.cardBackground, elevation: 0),
-      ),
+      // Apply centralized Light Theme
+      theme: AppThemes.lightTheme,
 
-      // Dark Theme Definition
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: AppColors.backgroundDark,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primary,
-          primary: AppColors.primary,
-          secondary: AppColors.secondary,
-          surface: AppColors.surfaceDark,
-          error: AppColors.error,
-          brightness: Brightness.dark,
-        ),
-        // Apply Google Fonts (Poppins) globally for dark mode.
-        textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          iconTheme: IconThemeData(color: AppColors.textPrimaryDark),
-        ),
-        cardTheme: const CardThemeData(color: AppColors.cardBackgroundDark, elevation: 0),
-      ),
+      // Apply centralized Dark Theme
+      darkTheme: AppThemes.darkTheme,
     );
   }
 }
