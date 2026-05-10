@@ -18,22 +18,46 @@ import 'core/errors/handlers/global_error_handler.dart';
 import 'database/database_helper.dart';
 import 'constants/app_colors.dart';
 
+/// The entry point of the PocketTrack Lite application.
+///
+/// This function orchestrates the bootstrap process, including:
+/// 1. Global error handling initialization.
+/// 2. Ensuring Flutter services are ready.
+/// 3. Initializing local database services (SQLite/Web storage).
+/// 4. Initializing background/push notification services.
+/// 5. Setting up the dependency injection tree using a hybrid approach
+///    of Riverpod ([ProviderScope]) and legacy Provider ([MultiProvider]).
 void main() async {
+  // Initialize the global error handler to catch and report app-wide exceptions.
   GlobalErrorHandler.init();
+
+  // Wrap the execution in a handler to safely manage asynchronous errors during startup.
   await GlobalErrorHandler.handle(() async {
+    // Required to interact with the Flutter engine before runApp() is called.
     WidgetsFlutterBinding.ensureInitialized();
 
-    // ✅ On web: seed SharedPreferences defaults. On mobile: nothing extra needed.
+    // Database Initialization:
+    // ✅ On web: seeds SharedPreferences defaults for persistent storage simulation.
+    // On mobile: ensures the SQLite database is ready.
     await DatabaseHelper.instance.initWeb();
+
+    // Ensures default categories are populated in the database for new users.
     await DatabaseHelper.instance.ensureCategoriesExist();
 
-    try { await NotificationService.init(); } catch (e) {
+    // Initialize Local/Push Notifications.
+    // Wrapped in a try-catch to ensure app startup succeeds even if notification permissions fail.
+    try {
+      await NotificationService.init();
+    } catch (e) {
       debugPrint('Notification init skipped: $e');
     }
 
+    // Launch the application.
     runApp(
+      // Riverpod scope for modern state management.
       ProviderScope(
         child: legacy_provider.MultiProvider(
+          // Legacy Provider list for backward compatibility with existing features.
           providers: [
             legacy_provider.ChangeNotifierProvider(create: (_) => ThemeProvider()),
             legacy_provider.ChangeNotifierProvider(create: (_) => ExpenseProvider()),
@@ -53,42 +77,74 @@ void main() async {
   });
 }
 
+/// The root widget of the PocketTrack Lite application.
+///
+/// Responsible for:
+/// - Configuring the [MaterialApp.router] with [GoRouter] logic.
+/// - Synchronizing the application's visual theme with [ThemeProvider].
+/// - Defining the global [ThemeData] for both Light and Dark modes.
 class MyApp extends StatelessWidget {
+  /// Creates the root application widget.
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
+    // Access the ThemeProvider to reactively update the UI when the user toggles light/dark mode.
     final themeProvider = legacy_provider.Provider.of<ThemeProvider>(context);
+
     return MaterialApp.router(
       title: 'PocketTrack Lite',
       debugShowCheckedModeBanner: false,
+
+      // Routing configuration using the centralized goRouter.
       routerConfig: goRouter,
+
+      // Theme configuration based on user settings.
       themeMode: themeProvider.themeMode,
+
+      // Light Theme Definition
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
         scaffoldBackgroundColor: AppColors.background,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primary, primary: AppColors.primary,
-          secondary: AppColors.secondary, surface: AppColors.surface,
-          error: AppColors.error, brightness: Brightness.light,
+          seedColor: AppColors.primary,
+          primary: AppColors.primary,
+          secondary: AppColors.secondary,
+          surface: AppColors.surface,
+          error: AppColors.error,
+          brightness: Brightness.light,
         ),
+        // Apply Google Fonts (Poppins) globally across the app.
         textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme),
-        appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent,
-            elevation: 0, iconTheme: IconThemeData(color: AppColors.textPrimary)),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          iconTheme: IconThemeData(color: AppColors.textPrimary),
+        ),
         cardTheme: const CardThemeData(color: AppColors.cardBackground, elevation: 0),
       ),
+
+      // Dark Theme Definition
       darkTheme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
         scaffoldBackgroundColor: AppColors.backgroundDark,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primary, primary: AppColors.primary,
-          secondary: AppColors.secondary, surface: AppColors.surfaceDark,
-          error: AppColors.error, brightness: Brightness.dark,
+          seedColor: AppColors.primary,
+          primary: AppColors.primary,
+          secondary: AppColors.secondary,
+          surface: AppColors.surfaceDark,
+          error: AppColors.error,
+          brightness: Brightness.dark,
         ),
+        // Apply Google Fonts (Poppins) globally for dark mode.
         textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
-        appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent,
-            elevation: 0, iconTheme: IconThemeData(color: AppColors.textPrimaryDark)),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          iconTheme: IconThemeData(color: AppColors.textPrimaryDark),
+        ),
         cardTheme: const CardThemeData(color: AppColors.cardBackgroundDark, elevation: 0),
       ),
     );
