@@ -19,6 +19,7 @@ class AppRoutes {
   static const String settings = '/settings';
   static const String categories = '/settings/categories';
   static const String backup = '/settings/backup';
-  
+  static const String privacyPolicy = '/settings/privacy-policy';
+
   static const String trash = '/trash';
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:currency_picker/currency_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:go_router/go_router.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../utils/security_helper.dart';
@@ -12,7 +14,10 @@ import '../../features/profile/providers/profile_provider.dart';
 import '../../features/profile/models/user_profile.dart';
 import '../../database/database_helper.dart';
 import '../../providers/expense_provider.dart';
+import '../../providers/budget_provider.dart';
+import '../../providers/category_provider.dart';
 import '../../utils/smart_features.dart';
+import '../../router/app_routes.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -134,8 +139,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             const SizedBox(height: 20),
             _buildSection("About", cardColor, [
               _buildListTile("App Version", "1.0.0", Icons.info_outline_rounded, () {}, cardColor),
-              _buildListTile("Privacy Policy", "", Icons.privacy_tip_outlined, () {}, cardColor),
-              _buildListTile("Contact Support", "", Icons.support_agent_rounded, () {}, cardColor),
+              _buildListTile("Privacy Policy", "", Icons.privacy_tip_outlined,
+                () => context.push(AppRoutes.privacyPolicy), cardColor),
+              _buildListTile("Contact Support", "", Icons.support_agent_rounded,
+                () => _showContactSupport(context), cardColor),
             ]),
             const SizedBox(height: 50),
           ],
@@ -413,7 +420,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           TextButton(
             onPressed: () async {
               final messenger = ScaffoldMessenger.of(context);
+              
+              // 1. Clear persistent storage
               await DatabaseHelper.instance.clearAllData();
+              
+              // 2. Reset demo data flag
+              final p = await SharedPreferences.getInstance();
+              await p.setBool('demo_data_generated', false);
+
+              if (!mounted) return;
+
+              // 3. Refresh providers to update UI immediately
+              final expenseProvider = context.read<ExpenseProvider>();
+              await expenseProvider.fetchExpenses();
+              
+              if (!mounted) return;
+              await context.read<BudgetProvider>().loadBudgets(expenseProvider.expenses);
+              
+              if (!mounted) return;
+              await context.read<CategoryProvider>().loadCategories();
+
               if (!mounted) return;
               Navigator.pop(ctx);
               messenger.showSnackBar(
@@ -421,6 +447,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
             child: const Text("Delete Everything", style: TextStyle(color: Colors.red)),
           ),
+        ],
+      ),
+    );
+  }
+
+  void _showContactSupport(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Contact Support"),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Developer: Alyan Khan Banochi", style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
+            Text("Email: muhammedalyankhanbu@gmail.com"),
+            SizedBox(height: 16),
+            Text("Feel free to reach out for support or feedback!"),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Close")),
         ],
       ),
     );

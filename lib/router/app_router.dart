@@ -7,6 +7,7 @@ import '../screens/budget/budget_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/expenses/add_expense_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
+import '../screens/settings/privacy_policy_screen.dart';
 import '../utils/security_helper.dart';
 import 'app_routes.dart';
 
@@ -70,6 +71,10 @@ final goRouter = GoRouter(
         GoRoute(
           path: 'backup',
           builder: (context, state) => const Center(child: Text('Backup')),
+        ),
+        GoRoute(
+          path: 'privacy-policy',
+          builder: (context, state) => const PrivacyPolicyScreen(),
         ),
       ],
     ),
