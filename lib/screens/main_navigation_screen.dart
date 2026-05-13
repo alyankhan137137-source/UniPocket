@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
-import 'expenses/add_expense_screen.dart';
 import '../constants/app_colors.dart';
 import '../utils/animations.dart';
 import '../router/app_routes.dart';

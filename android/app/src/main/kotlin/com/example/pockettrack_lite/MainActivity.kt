@@ -1,4 +1,4 @@
-package com.example.pockettrack_lite
+package com.example.unipocket
 
 import io.flutter.embedding.android.FlutterActivity
 

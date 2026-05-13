@@ -17,7 +17,7 @@ import 'core/errors/handlers/global_error_handler.dart';
 import 'database/database_helper.dart';
 import 'constants/app_themes.dart';
 
-/// The entry point of the PocketTrack Lite application.
+/// The entry point of the UniPocket application.
 ///
 /// This function orchestrates the bootstrap process, including:
 /// 1. Global error handling initialization.
@@ -76,7 +76,7 @@ void main() async {
   });
 }
 
-/// The root widget of the PocketTrack Lite application.
+/// The root widget of the UniPocket application.
 ///
 /// Responsible for:
 /// - Configuring the [MaterialApp.router] with [GoRouter] logic.
@@ -92,7 +92,7 @@ class MyApp extends StatelessWidget {
     final themeProvider = legacy_provider.Provider.of<ThemeProvider>(context);
 
     return MaterialApp.router(
-      title: 'PocketTrack Lite',
+      title: 'UniPocket',
       debugShowCheckedModeBanner: false,
 
       // Routing configuration using the centralized goRouter.

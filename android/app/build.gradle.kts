@@ -7,7 +7,7 @@ plugins {
 
 android {
     // Standardized namespace for modern Android builds
-    namespace = "com.example.pockettrack_lite"
+    namespace = "com.example.unipocket"
     
     // Updated to 35 as required by jni_flutter
     compileSdk = 36
@@ -30,7 +30,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.pockettrack_lite"
+        applicationId = "com.example.unipocket"
         
         // Baseline for modern desugaring and plugin compatibility
         minSdk = flutter.minSdkVersion 

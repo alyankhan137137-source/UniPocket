@@ -1,11 +1,11 @@
 {
-    "name": "pockettrack_lite",
-    "short_name": "pockettrack_lite",
+    "name": "UniPocket",
+    "short_name": "UniPocket",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#6C63FF",
+    "theme_color": "#6C63FF",
+    "description": "UniPocket - Student Expense Tracker",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

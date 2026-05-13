@@ -6,7 +6,7 @@ import '../../../providers/expense_provider.dart';
 import '../../../providers/settings_provider.dart';
 import '../../../constants/app_colors.dart';
 
-/// A card widget that displays the user's total balance, income, and expenses.
+/// A card widget that displays the user's total balance, allowance, and expenses.
 /// 
 /// This widget features a gradient background, animated balance numbers,
 /// and a privacy toggle to hide or show sensitive monetary values.
@@ -97,7 +97,7 @@ class _BalanceCardState extends State<BalanceCard> {
                   const Spacer(),
                   Row(
                     children: [
-                      Expanded(child: _infoCol("Income",
+                      Expanded(child: _infoCol("Allowance/Added",
                         _isBalanceVisible ? _formatAmount(provider.totalIncome, currency) : "••••",
                         Icons.arrow_downward_rounded, Colors.greenAccent)),
                       Container(width: 1, height: 30, color: Colors.white.withValues(alpha: 0.2)),
@@ -115,7 +115,7 @@ class _BalanceCardState extends State<BalanceCard> {
     );
   }
 
-  /// Builds a column showing either income or expense details.
+  /// Builds a column showing either allowance or expense details.
   Widget _infoCol(String label, String amount, IconData icon, Color iconColor) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),

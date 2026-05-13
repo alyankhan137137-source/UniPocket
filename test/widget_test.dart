@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pockettrack_lite/widgets/custom_button.dart';
-import 'package:pockettrack_lite/widgets/custom_input.dart';
-import 'package:pockettrack_lite/constants/app_colors.dart';
+import 'package:unipocket/widgets/custom_button.dart';
+import 'package:unipocket/widgets/custom_input.dart';
+import 'package:unipocket/constants/app_colors.dart';
 
 void main() {
   group('Custom Widgets Rendering Tests', () {

@@ -1,16 +1,16 @@
-# 💰 PocketTrack Lite
+# 💰 UniPocket
 
 > **Your personal finance companion — offline, private, and beautifully simple.**
 
-PocketTrack Lite is a fully offline expense and budget tracking app built with **Flutter**. No ads, no cloud sync, no subscriptions. Your financial data stays 100% on your device.
+UniPocket is a fully offline expense and budget tracking app built with **Flutter**. No ads, no cloud sync, no subscriptions. Your financial data stays 100% on your device.
 
 ---
 
 ## ✨ Features
 
-### 💸 Expense & Income Tracking
-- Add income and expenses in seconds
-- 16 built-in categories (Food, Transport, Shopping, Salary, and more)
+### 💸 Expense & Allowance Tracking
+- Add allowance and expenses in seconds
+- 12 built-in student categories (Rent, Groceries, Eating Out, Transport, and more)
 - Smart category suggestions based on transaction title
 - Duplicate transaction detection
 - Edit and delete transactions with swipe gestures
@@ -22,9 +22,9 @@ PocketTrack Lite is a fully offline expense and budget tracking app built with *
 - Overspend alerts and visual indicators
 
 ### 📈 Analytics
-- Spending overview (Today / This Month / Income)
+- Spending overview (Today / This Month / Allowance)
 - Category-wise breakdown
-- Balance card with income vs expense summary
+- Balance card with allowance vs expense summary
 
 ### 🎨 UI & UX
 - Beautiful purple gradient design
@@ -47,7 +47,7 @@ PocketTrack Lite is a fully offline expense and budget tracking app built with *
 
 ### 🔒 Privacy & Security
 - 100% offline — no internet required
-- Data stored locally using SharedPreferences
+- Data stored locally using SQLite/SharedPreferences
 - Optional PIN protection
 - Privacy mode to hide balance
 
@@ -83,10 +83,10 @@ PocketTrack Lite is a fully offline expense and budget tracking app built with *
 
 ```bash
 # Clone the repository
-git clone https://github.com/alyankhan137137-source/pockettrack-lite.git
+git clone https://github.com/alyankhan137137-source/unipocket.git
 
 # Navigate into the project
-cd pockettrack-lite
+cd unipocket
 
 # Install dependencies
 flutter pub get
@@ -96,15 +96,6 @@ flutter run -d chrome
 
 # Run on Android device
 flutter run
-```
-
-### Android SDK Setup
-Make sure your `android/app/build.gradle.kts` has:
-```kotlin
-android {
-    compileSdk = 36
-    targetSdk = 36
-}
 ```
 
 ---
@@ -163,12 +154,6 @@ This is a personal project but contributions are welcome!
 **Alyan Khan**
 
 - GitHub: [@alyankhan137137-source](https://github.com/alyankhan137137-source)
-
----
-
-## 📄 License
-
-This project is for personal and educational use.
 
 ---
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// A professional color scheme for the PocketTrack Lite app.
+/// A professional color scheme for the UniPocket app.
 /// 
 /// This class centralizes all color definitions used across the application,
 /// including primary gradients, status colors, and category-specific palettes.
@@ -19,7 +19,7 @@ class AppColors {
   static const Color secondary = Color(0xFF03DAC6);
 
   // --- Status Colors ---
-  /// Color representing positive financial transactions or income.
+  /// Color representing positive financial transactions or allowance.
   static const Color income = Color(0xFF4CAF50); // Modern Green
   
   /// Color representing negative financial transactions or expenses.
@@ -87,7 +87,7 @@ class AppColors {
     end: Alignment.bottomRight,
   );
 
-  /// Gradient specifically for income-related visual elements.
+  /// Gradient specifically for allowance-related visual elements.
   static const LinearGradient incomeGradient = LinearGradient(
     colors: [Color(0xFF4CAF50), Color(0xFF81C784)],
     begin: Alignment.topLeft,

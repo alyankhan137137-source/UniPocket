@@ -3,10 +3,6 @@ import '../../constants/app_styles.dart';
 import '../../constants/app_colors.dart';
 
 /// A screen that displays the application's privacy policy.
-/// 
-/// This screen provides clear information to the user about how their data 
-/// is handled, emphasizing that all data is stored locally on the device 
-/// and not shared with external servers.
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
 
@@ -24,7 +20,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
           children: [
             _buildSectionTitle("Introduction"),
             _buildBodyText(
-                "PocketTrack Lite (\"we\", \"our\", or \"us\") is committed to protecting your privacy. This Privacy Policy explains how your information is collected, used, and safeguarded when you use our mobile application."),
+                "UniPocket (\"we\", \"our\", or \"us\") is committed to protecting your privacy. This Privacy Policy explains how your information is collected, used, and safeguarded when you use our mobile application."),
             const SizedBox(height: 20),
             _buildSectionTitle("Data Collection & Storage"),
             _buildBodyText(
@@ -42,12 +38,12 @@ class PrivacyPolicyScreen extends StatelessWidget {
             _buildSectionTitle("Contact Us"),
             _buildBodyText(
                 "If you have any questions about this Privacy Policy, please contact the developer:\n"
-                "Name: Alyan Khan Banochi\n"
+                "Name: Alyan Khan\n"
                 "Email: muhammedalyankhanbu@gmail.com"),
             const SizedBox(height: 40),
             const Center(
               child: Text(
-                "Last Updated: October 2023",
+                "Last Updated: June 2024",
                 style: AppStyles.caption,
               ),
             ),
@@ -58,7 +54,6 @@ class PrivacyPolicyScreen extends StatelessWidget {
     );
   }
 
-  /// Builds a section title with consistent styling.
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
@@ -69,7 +64,6 @@ class PrivacyPolicyScreen extends StatelessWidget {
     );
   }
 
-  /// Builds the body text for a policy section.
   Widget _buildBodyText(String text) {
     return Text(
       text,

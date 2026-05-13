@@ -41,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
             return const Icon(Icons.account_balance_wallet);
           }),
         ),
-        title: const Text('PocketTrack Lite'),
+        title: const Text('UniPocket'),
       ),
       body: Column(
         children: [

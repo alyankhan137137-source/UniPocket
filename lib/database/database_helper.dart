@@ -9,55 +9,26 @@ import '../models/user_settings_model.dart';
 import '../features/recurring/models/recurring_transaction.dart';
 
 /// A centralized helper class for managing application data storage.
-/// 
-/// This class provides a unified interface for database operations, 
-/// abstracting away the platform-specific implementation:
-/// - **Mobile (Android/iOS)**: Uses SQLite via the `sqflite` package.
-/// - **Web**: Uses `SharedPreferences` to store data as JSON-encoded strings.
-/// 
-/// It follows the singleton pattern to ensure a single instance is used throughout the app.
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
-  
-  /// Factory constructor to return the singleton instance.
   factory DatabaseHelper() => _instance;
-  
   DatabaseHelper._internal();
-  
-  /// Static getter for the singleton instance.
   static DatabaseHelper get instance => _instance;
 
-  // ── SQLite Table Names (mobile only) ──────────────────────────────────────────
-  /// Name of the table storing expenses and incomes.
   static const String tableExpenses   = 'expenses';
-  
-  /// Name of the table storing transaction categories.
   static const String tableCategories = 'categories';
-  
-  /// Name of the table storing budget configurations.
   static const String tableBudgets    = 'budgets';
-  
-  /// Name of the table storing user settings.
   static const String tableSettings   = 'settings';
-  
-  /// Name of the table storing recurring transaction templates.
   static const String tableRecurring  = 'recurring_transactions';
 
-  // ── SharedPreferences Keys (web only) ─────────────────────────────────
-  static const String _keyExpenses   = 'pt_expenses';
-  static const String _keyBudgets    = 'pt_budgets';
-  static const String _keySettings   = 'pt_settings';
-  static const String _keyRecurring  = 'pt_recurring';
-  static const String _keyNextId     = 'pt_next_id';
+  static const String _keyExpenses   = 'up_expenses';
+  static const String _keyBudgets    = 'up_budgets';
+  static const String _keySettings   = 'up_settings';
+  static const String _keyRecurring  = 'up_recurring';
+  static const String _keyNextId     = 'up_next_id';
 
-  // ─────────────────────────────────────────────────────────────────
-  //  Database getter (mobile only)
-  // ─────────────────────────────────────────────────────────────────
   static Database? _database;
 
-  /// Returns the underlying SQLite database instance.
-  /// 
-  /// Throws [UnsupportedError] if called on Web.
   Future<Database> get database async {
     if (kIsWeb) throw UnsupportedError('Use SharedPreferences on Web');
     if (_database != null) return _database!;
@@ -65,21 +36,15 @@ class DatabaseHelper {
     return _database!;
   }
 
-  /// Initializes the SQLite database on mobile platforms.
   Future<Database> _initDatabase() async {
     final dir  = await getApplicationDocumentsDirectory();
-    final path = join(dir.path, 'pockettrack.db');
-    debugPrint('Opening SQLite: $path');
+    final path = join(dir.path, 'unipocket.db');
     return await openDatabase(path, version: 5,
         onCreate: _onCreate, onUpgrade: _onUpgrade, onConfigure: _onConfigure);
   }
 
-  // ─────────────────────────────────────────────────────────────────
-  //  Web helpers
-  // ─────────────────────────────────────────────────────────────────
   Future<SharedPreferences> get _prefs => SharedPreferences.getInstance();
 
-  /// Retrieves a list of maps from SharedPreferences for the given [key].
   Future<List<Map<String, dynamic>>> _getList(String key) async {
     final p   = await _prefs;
     final raw = p.getString(key);
@@ -87,13 +52,11 @@ class DatabaseHelper {
     return List<Map<String, dynamic>>.from(jsonDecode(raw));
   }
 
-  /// Saves a list of maps to SharedPreferences under the given [key].
   Future<void> _saveList(String key, List<Map<String, dynamic>> list) async {
     final p = await _prefs;
     await p.setString(key, jsonEncode(list));
   }
 
-  /// Generates the next sequential ID for web storage.
   Future<int> _nextId() async {
     final p   = await _prefs;
     final id  = (p.getInt(_keyNextId) ?? 0) + 1;
@@ -101,33 +64,84 @@ class DatabaseHelper {
     return id;
   }
 
-  // ─────────────────────────────────────────────────────────────────
-  //  Init (seed defaults on first run)
-  // ─────────────────────────────────────────────────────────────────
-  
-  /// Initializes the web storage with default settings if they don't exist.
   Future<void> initWeb() async {
     if (!kIsWeb) return;
     final p = await _prefs;
     if (!p.containsKey(_keySettings)) {
       await p.setString(_keySettings, jsonEncode(UserSettings.defaultSettings().toMap()));
-      debugPrint('✅ Default settings seeded');
     }
   }
 
-  /// Placeholder for category verification on web.
   Future<void> ensureCategoriesExist() async {
-    // Categories are baked into the UI for web — no DB needed
-    debugPrint('✅ Categories OK (web uses built-in list)');
+    final categories = [
+      'Rent', 
+      'Groceries', 
+      'Eating Out', 
+      'Transport', 
+      'Tuition & Fees', 
+      'Textbooks', 
+      'Subscriptions', 
+      'Going Out', 
+      'Health', 
+      'Clothing', 
+      'Tech', 
+      'Other'
+    ];
+    
+    if (!kIsWeb) {
+      final db = await database;
+      final count = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM $tableCategories'));
+      if (count == 0) {
+        for (var name in categories) {
+          await db.insert(tableCategories, {
+            'id': name.toLowerCase().replaceAll(' ', '_').replaceAll('&', '').replaceAll('__', '_'),
+            'name': name,
+            'icon': _getIconForCategory(name),
+            'type': 'expense',
+            'color': _getColorForCategory(name),
+            'is_default': 1,
+            'created_at': DateTime.now().toIso8601String()
+          });
+        }
+      }
+      return;
+    }
   }
 
-  // ─────────────────────────────────────────────────────────────────
-  //  EXPENSES
-  // ─────────────────────────────────────────────────────────────────
-  
-  /// Inserts a new [expense] into the database.
-  /// 
-  /// Returns the auto-generated ID of the new record.
+  String _getIconForCategory(String name) {
+    switch (name) {
+      case 'Rent': return '🏠';
+      case 'Groceries': return '🛒';
+      case 'Eating Out': return '🍔';
+      case 'Transport': return '🚌';
+      case 'Tuition & Fees': return '🎓';
+      case 'Textbooks': return '📚';
+      case 'Subscriptions': return '📱';
+      case 'Going Out': return '🎬';
+      case 'Health': return '🏥';
+      case 'Clothing': return '🛍️';
+      case 'Tech': return '💻';
+      default: return '📦';
+    }
+  }
+
+  int _getColorForCategory(String name) {
+    switch (name) {
+      case 'Rent': return 0xFF6D4C41;
+      case 'Groceries': return 0xFF43A047;
+      case 'Eating Out': return 0xFFE53935;
+      case 'Transport': return 0xFF1E88E5;
+      case 'Tuition & Fees': return 0xFF3949AB;
+      case 'Textbooks': return 0xFFFBC02D;
+      case 'Subscriptions': return 0xFF8E24AA;
+      case 'Going Out': return 0xFFF4511E;
+      case 'Health': return 0xFF00897B;
+      case 'Clothing': return 0xFFEC407A;
+      case 'Tech': return 0xFF00ACC1;
+      default: return 0xFF757575;
+    }
+  }
+
   Future<int> insertExpense(Expense expense) async {
     if (kIsWeb) {
       final list = await _getList(_keyExpenses);
@@ -141,45 +155,32 @@ class DatabaseHelper {
     return db.insert(tableExpenses, expense.toMap());
   }
 
-  /// Retrieves all non-deleted expenses from the database.
-  /// 
-  /// Supports [limit] and [offset] for pagination. Results are ordered by date descending.
   Future<List<Expense>> getAllExpenses({int? limit, int? offset}) async {
     if (kIsWeb) {
       final list = await _getList(_keyExpenses);
       final active = list.where((m) => m['is_deleted'] != 1).toList()
         ..sort((a, b) => b['date'].compareTo(a['date']));
-      final sliced = (limit != null)
-          ? active.skip(offset ?? 0).take(limit).toList()
-          : active;
+      final sliced = (limit != null) ? active.skip(offset ?? 0).take(limit).toList() : active;
       return sliced.map((m) => Expense.fromMap(m)).toList();
     }
     final db  = await database;
-    final res = await db.query('active_expenses',
-        orderBy: 'date DESC', limit: limit, offset: offset);
+    final res = await db.query('active_expenses', orderBy: 'date DESC', limit: limit, offset: offset);
     return res.map((m) => Expense.fromMap(m)).toList();
   }
 
-  /// Marks an expense with the given [id] as deleted (soft delete).
   Future<int> softDeleteExpense(int id) async {
     if (kIsWeb) {
       final list = await _getList(_keyExpenses);
       for (var m in list) {
-        if (m['id'] == id) {
-          m['is_deleted'] = 1;
-          m['deleted_at'] = DateTime.now().toIso8601String();
-        }
+        if (m['id'] == id) { m['is_deleted'] = 1; m['deleted_at'] = DateTime.now().toIso8601String(); }
       }
       await _saveList(_keyExpenses, list);
       return 1;
     }
     final db = await database;
-    return db.update(tableExpenses,
-        {'is_deleted': 1, 'deleted_at': DateTime.now().toIso8601String()},
-        where: 'id = ?', whereArgs: [id]);
+    return db.update(tableExpenses, {'is_deleted': 1, 'deleted_at': DateTime.now().toIso8601String()}, where: 'id = ?', whereArgs: [id]);
   }
 
-  /// Restores a previously soft-deleted expense.
   Future<int> restoreExpense(int id) async {
     if (kIsWeb) {
       final list = await _getList(_keyExpenses);
@@ -190,11 +191,9 @@ class DatabaseHelper {
       return 1;
     }
     final db = await database;
-    return db.update(tableExpenses, {'is_deleted': 0, 'deleted_at': null},
-        where: 'id = ?', whereArgs: [id]);
+    return db.update(tableExpenses, {'is_deleted': 0, 'deleted_at': null}, where: 'id = ?', whereArgs: [id]);
   }
 
-  /// Updates an existing [expense] record.
   Future<int> updateExpense(Expense expense) async {
     if (kIsWeb) {
       final list = await _getList(_keyExpenses);
@@ -205,22 +204,15 @@ class DatabaseHelper {
       return 1;
     }
     final db = await database;
-    return db.update(tableExpenses, expense.toMap(),
-        where: 'id = ?', whereArgs: [expense.id]);
+    return db.update(tableExpenses, expense.toMap(), where: 'id = ?', whereArgs: [expense.id]);
   }
 
-  // ─────────────────────────────────────────────────────────────────
-  //  BUDGETS
-  // ─────────────────────────────────────────────────────────────────
-  
-  /// Retrieves all budget records from the database.
   Future<List<Map<String, dynamic>>> getBudgets() async {
     if (kIsWeb) return _getList(_keyBudgets);
     final db = await database;
     return db.query(tableBudgets);
   }
 
-  /// Inserts a new [budget] record.
   Future<int> insertBudget(Map<String, dynamic> budget) async {
     if (kIsWeb) {
       final list = await _getList(_keyBudgets);
@@ -233,7 +225,6 @@ class DatabaseHelper {
     return db.insert(tableBudgets, budget);
   }
 
-  /// Updates an existing [budget] record.
   Future<int> updateBudget(Map<String, dynamic> budget) async {
     if (kIsWeb) {
       final list = await _getList(_keyBudgets);
@@ -244,11 +235,9 @@ class DatabaseHelper {
       return 1;
     }
     final db = await database;
-    return db.update(tableBudgets, budget,
-        where: 'id = ?', whereArgs: [budget['id']]);
+    return db.update(tableBudgets, budget, where: 'id = ?', whereArgs: [budget['id']]);
   }
 
-  /// Permanently deletes a budget record with the given [id].
   Future<int> deleteBudget(int id) async {
     if (kIsWeb) {
       final list = await _getList(_keyBudgets);
@@ -260,13 +249,6 @@ class DatabaseHelper {
     return db.delete(tableBudgets, where: 'id = ?', whereArgs: [id]);
   }
 
-  // ─────────────────────────────────────────────────────────────────
-  //  SETTINGS
-  // ─────────────────────────────────────────────────────────────────
-  
-  /// Retrieves the current [UserSettings]. 
-  /// 
-  /// Returns default settings if none are found in storage.
   Future<UserSettings> getSettings() async {
     if (kIsWeb) {
       final p   = await _prefs;
@@ -280,7 +262,6 @@ class DatabaseHelper {
     return UserSettings.fromMap(maps.first);
   }
 
-  /// Persists the updated [UserSettings].
   Future<void> saveSettings(UserSettings s) async {
     if (kIsWeb) {
       final p = await _prefs;
@@ -288,15 +269,9 @@ class DatabaseHelper {
       return;
     }
     final db = await database;
-    await db.update(tableSettings, s.toMap(),
-        where: 'id = ?', whereArgs: [1]);
+    await db.update(tableSettings, s.toMap(), where: 'id = ?', whereArgs: [1]);
   }
 
-  // ─────────────────────────────────────────────────────────────────
-  //  RECURRING
-  // ─────────────────────────────────────────────────────────────────
-  
-  /// Inserts a new recurring transaction template [r].
   Future<int> insertRecurring(RecurringTransaction r) async {
     if (kIsWeb) {
       final list = await _getList(_keyRecurring);
@@ -308,21 +283,16 @@ class DatabaseHelper {
     return db.insert(tableRecurring, r.toMap());
   }
 
-  /// Retrieves all active and non-deleted recurring templates.
   Future<List<RecurringTransaction>> getActiveRecurring() async {
     if (kIsWeb) {
       final list = await _getList(_keyRecurring);
-      return list
-          .where((m) => m['is_deleted'] != 1 && m['isActive'] == 1)
-          .map((m) => RecurringTransaction.fromMap(m))
-          .toList();
+      return list.where((m) => m['is_deleted'] != 1 && m['isActive'] == 1).map((m) => RecurringTransaction.fromMap(m)).toList();
     }
     final db  = await database;
     final res = await db.query('active_recurring');
     return res.map((m) => RecurringTransaction.fromMap(m)).toList();
   }
 
-  /// Updates an existing recurring transaction template [r].
   Future<int> updateRecurring(RecurringTransaction r) async {
     if (kIsWeb) {
       final list = await _getList(_keyRecurring);
@@ -333,54 +303,33 @@ class DatabaseHelper {
       return 1;
     }
     final db = await database;
-    return db.update(tableRecurring, r.toMap(),
-        where: 'id = ?', whereArgs: [r.id]);
+    return db.update(tableRecurring, r.toMap(), where: 'id = ?', whereArgs: [r.id]);
   }
 
-  // ─────────────────────────────────────────────────────────────────
-  //  ANALYTICS helpers
-  // ─────────────────────────────────────────────────────────────────
-  
-  /// Calculates a summary of total income, total expense, and current balance.
-  /// 
-  /// Values are returned in major currency units (e.g., dollars).
   Future<Map<String, double>> getBalanceSummary() async {
     final expenses = await getAllExpenses();
     double income  = 0, expense = 0;
     for (var e in expenses) {
-      if (e.type == 'income') income  += e.amount;
-      else                    expense += e.amount;
+      if (e.type == 'income') income += e.amount; else expense += e.amount;
     }
     return {
-      'income':  income  / 100,
+      'income': income / 100,
       'expense': expense / 100,
       'balance': (income - expense) / 100,
     };
   }
 
-  /// Calculates total spending per category for a specific [month].
   Future<List<Map<String, dynamic>>> getCategoryWiseSpending(DateTime month) async {
     final expenses = await getAllExpenses();
     final Map<String, int> totals = {};
     for (var e in expenses) {
-      if (e.type == 'expense' &&
-          e.date.year == month.year &&
-          e.date.month == month.month) {
+      if (e.type == 'expense' && e.date.year == month.year && e.date.month == month.month) {
         totals[e.category] = (totals[e.category] ?? 0) + e.amount;
       }
     }
-    return totals.entries
-        .map((e) => {'category': e.key, 'total': e.value})
-        .toList()
-      ..sort((a, b) => (b['total'] as int).compareTo(a['total'] as int));
+    return totals.entries.map((e) => {'category': e.key, 'total': e.value}).toList()..sort((a, b) => (b['total'] as int).compareTo(a['total'] as int));
   }
 
-  // ─────────────────────────────────────────────────────────────────
-  //  CLEAR ALL
-  // ─────────────────────────────────────────────────────────────────
-  
-  /// Deletes all user data from the application, including expenses, budgets,
-  /// and recurring templates. Settings are preserved on mobile.
   Future<void> clearAllData() async {
     if (kIsWeb) {
       final p = await _prefs;
@@ -399,21 +348,29 @@ class DatabaseHelper {
     });
   }
 
-  // ─────────────────────────────────────────────────────────────────
-  //  SQLite schema (mobile only)
-  // ─────────────────────────────────────────────────────────────────
-  
-  /// Configures the SQLite database, enabling foreign keys.
   Future _onConfigure(Database db) async {
     if (!kIsWeb) await db.execute('PRAGMA foreign_keys = ON');
   }
 
-  /// Creates the database schema on mobile platforms.
   Future _onCreate(Database db, int version) async {
     await db.execute('''CREATE TABLE IF NOT EXISTS $tableCategories (
       id TEXT PRIMARY KEY, name TEXT NOT NULL, icon TEXT NOT NULL,
       type TEXT NOT NULL, color INTEGER NOT NULL, is_default INTEGER DEFAULT 0,
       is_active INTEGER DEFAULT 1, sort_order INTEGER DEFAULT 0, created_at TEXT NOT NULL)''');
+    
+    final categories = ['Rent', 'Groceries', 'Eating Out', 'Transport', 'Tuition & Fees', 'Textbooks', 'Subscriptions', 'Going Out', 'Health', 'Clothing', 'Tech', 'Other'];
+    for (var name in categories) {
+      await db.insert(tableCategories, {
+        'id': name.toLowerCase().replaceAll(' ', '_').replaceAll('&', '').replaceAll('__', '_'),
+        'name': name,
+        'icon': _getIconForCategory(name),
+        'type': 'expense',
+        'color': _getColorForCategory(name),
+        'is_default': 1,
+        'created_at': DateTime.now().toIso8601String()
+      });
+    }
+
     await db.execute('''CREATE TABLE IF NOT EXISTS $tableExpenses (
       id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, amount INTEGER NOT NULL,
       category TEXT NOT NULL, date TEXT NOT NULL, type TEXT NOT NULL, note TEXT,
@@ -435,16 +392,12 @@ class DatabaseHelper {
       isPaused INTEGER DEFAULT 0, skipDates TEXT, totalGenerated INTEGER DEFAULT 0,
       note TEXT, createdAt TEXT NOT NULL, is_deleted INTEGER DEFAULT 0, deleted_at TEXT)''');
     
-    // Create views for easier querying of active records
     await db.execute('CREATE VIEW IF NOT EXISTS active_expenses AS SELECT * FROM $tableExpenses WHERE is_deleted = 0');
     await db.execute('CREATE VIEW IF NOT EXISTS active_categories AS SELECT * FROM $tableCategories WHERE is_active = 1');
     await db.execute('CREATE VIEW IF NOT EXISTS active_recurring AS SELECT * FROM $tableRecurring WHERE is_deleted = 0 AND isActive = 1');
     
-    // Seed default settings
-    await db.insert(tableSettings, UserSettings.defaultSettings().toMap(),
-        conflictAlgorithm: ConflictAlgorithm.ignore);
+    await db.insert(tableSettings, UserSettings.defaultSettings().toMap(), conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
-  /// Handles database migrations.
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {}
 }

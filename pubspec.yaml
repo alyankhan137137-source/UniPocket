@@ -1,5 +1,5 @@
-name: pockettrack_lite
-description: "Offline Daily Expense + Budget Planner"
+name: unipocket
+description: "Student Expense Tracker for University Life"
 publish_to: 'none'
 version: 1.0.0+1
 

@@ -15,10 +15,6 @@ import 'app_routes.dart';
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
 /// The main routing configuration for the application using the [GoRouter] package.
-/// 
-/// Defines the route hierarchy, including top-level screens, shell routes for bottom
-/// navigation, and nested/standalone screens. It uses [MainNavigationScreen] as the 
-/// persistent shell for the primary app sections.
 final goRouter = GoRouter(
   initialLocation: AppRoutes.splash,
   navigatorKey: _rootNavigatorKey,
@@ -120,7 +116,7 @@ class _SplashScreenState extends State<SplashScreen> {
           children: [
             CircularProgressIndicator(),
             SizedBox(height: 20),
-            Text("Initializing PocketTrack Lite...", style: TextStyle(fontWeight: FontWeight.bold)),
+            Text("Initializing UniPocket...", style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
       ),

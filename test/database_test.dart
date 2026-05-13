@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pockettrack_lite/database/database_helper.dart';
-import 'package:pockettrack_lite/models/expense_model.dart';
+import 'package:unipocket/database/database_helper.dart';
+import 'package:unipocket/models/expense_model.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -18,9 +18,9 @@ void main() {
   group('Database Integration Tests', () {
     test('Insert and Retrieve Expense', () async {
       final expense = Expense(
-        title: 'Test Expense',
+        title: 'Lunch at Cafeteria',
         amount: 50,
-        category: 'Food',
+        category: 'Eating Out',
         date: DateTime.now(),
         type: 'expense',
       );
@@ -29,7 +29,7 @@ void main() {
       expect(id, isNotNull);
 
       final expenses = await dbHelper.getAllExpenses();
-      expect(expenses.any((e) => e.title == 'Test Expense'), true);
+      expect(expenses.any((e) => e.title == 'Lunch at Cafeteria'), true);
     });
 
     test('Update Expense', () async {
@@ -37,7 +37,7 @@ void main() {
       await dbHelper.insertExpense(Expense(
         title: 'Original',
         amount: 10,
-        category: 'Food',
+        category: 'Groceries',
         date: DateTime.now(),
         type: 'expense',
       ));
@@ -55,12 +55,11 @@ void main() {
       final id = await dbHelper.insertExpense(Expense(
         title: 'ToDelete',
         amount: 10,
-        category: 'Food',
+        category: 'Other',
         date: DateTime.now(),
         type: 'expense',
       ));
       
-      // FIX: Use softDeleteExpense to match DatabaseHelper implementation
       await dbHelper.softDeleteExpense(id);
       
       final refreshed = await dbHelper.getAllExpenses();
@@ -71,12 +70,12 @@ void main() {
       await dbHelper.clearAllData();
       
       await dbHelper.insertExpense(Expense(
-        title: 'Income', amount: 100000, category: 'Salary', 
+        title: 'Part-time Job', amount: 100000, category: 'Part-time', 
         date: DateTime.now(), type: 'income'
       ));
       
       await dbHelper.insertExpense(Expense(
-        title: 'Expense', amount: 40000, category: 'Rent', 
+        title: 'Monthly Rent', amount: 40000, category: 'Rent',
         date: DateTime.now(), type: 'expense'
       ));
 

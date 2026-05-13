@@ -12,12 +12,7 @@ import '../../router/app_routes.dart';
 import 'widgets/balance_card.dart';
 import 'widgets/recent_transactions.dart';
 
-/// The primary dashboard screen for the application.
-///
-/// This screen provides a high-level overview of the user's finances,
-/// including current balance, quick actions for adding transactions,
-/// spending progress, and recent activity. It uses [ConsumerStatefulWidget]
-/// to react to profile and financial data changes.
+/// The primary dashboard screen for the UniPocket application.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
   @override
@@ -28,7 +23,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize data loading on first frame
     Future.microtask(() async {
       if (!mounted) return;
       final ep = context.read<ExpenseProvider>();
@@ -42,7 +36,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Watch profile state to display personalized greeting
     final profileAsync = ref.watch(profileNotifierProvider);
     final userName = (profileAsync.value?.name.isNotEmpty == true) ? profileAsync.value!.name : 'there';
     final initials = userName.isNotEmpty
@@ -111,12 +104,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  /// Builds the horizontal row of quick action buttons.
   Widget _buildQuickActions(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _quickAction("Add Income", Icons.add_circle_outline, Colors.green, () =>
+        _quickAction("Add Allowance", Icons.add_circle_outline, Colors.green, () =>
             context.push(AppRoutes.addTransaction)),
         _quickAction("Add Expense", Icons.remove_circle_outline, Colors.orange, () =>
             context.push(AppRoutes.addTransaction)),
@@ -126,7 +118,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  /// Builds a single quick action item with an icon and label.
   Widget _quickAction(String label, IconData icon, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
@@ -148,7 +139,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  /// Builds a section header with a title and a "See All" action.
   Widget _buildSectionHeader(BuildContext context, String title, VoidCallback onTap) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -159,7 +149,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  /// Builds the spending overview horizontal list.
   Widget _buildSpendingOverview(BuildContext context) {
     final provider = context.watch<ExpenseProvider>();
     return SingleChildScrollView(
@@ -169,13 +158,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         children: [
           _overviewCard("Today", provider.todayExpenses, provider.totalExpense > 0 ? provider.todayExpenses / provider.totalExpense : 0),
           _overviewCard("This Month", provider.totalExpense, 1.0),
-          _overviewCard("Income", provider.totalIncome, 1.0),
+          _overviewCard("Allowance/Added", provider.totalIncome, 1.0),
         ],
       ),
     );
   }
 
-  /// Builds a card for the spending overview.
   Widget _overviewCard(String label, double amount, double progress) {
     return Container(
       width: 160,
@@ -207,7 +195,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  /// Builds the budget status section showing progress for the top 3 budgets.
   Widget _buildBudgetStatus(BuildContext context) {
     final budgetProvider = context.watch<BudgetProvider>();
     if (budgetProvider.budgets.isEmpty) {

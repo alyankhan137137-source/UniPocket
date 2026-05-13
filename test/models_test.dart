@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pockettrack_lite/models/expense_model.dart';
-import 'package:pockettrack_lite/models/budget_model.dart';
-import 'package:pockettrack_lite/models/user_settings_model.dart';
+import 'package:unipocket/models/expense_model.dart';
+import 'package:unipocket/models/budget_model.dart';
+import 'package:unipocket/models/user_settings_model.dart';
 
 void main() {
   group('Expense Model Tests', () {
@@ -26,14 +26,14 @@ void main() {
     test('Expense.toMap converts to correct map', () {
       final expense = Expense(
         id: 1,
-        title: 'Salary',
+        title: 'Allowance',
         amount: 5000,
         category: 'Work',
         date: DateTime(2023, 10, 1),
         type: 'income',
       );
       final map = expense.toMap();
-      expect(map['title'], 'Salary');
+      expect(map['title'], 'Allowance');
       expect(map['amount'], 5000.0);
       expect(map['type'], 'income');
     });

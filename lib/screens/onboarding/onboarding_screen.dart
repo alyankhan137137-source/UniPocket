@@ -163,7 +163,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SizedBox(height: 20),
           const Text("Welcome!", style: AppStyles.heading1),
           const SizedBox(height: 10),
-          const Text("Let's set up your profile to get started.",
+          const Text("Track your uni spending, stress-free",
               textAlign: TextAlign.center, style: AppStyles.body1),
           const SizedBox(height: 40),
           TextField(
