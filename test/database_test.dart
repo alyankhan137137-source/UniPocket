@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unipocket/database/database_helper.dart';
 import 'package:unipocket/models/expense_model.dart';
+import 'package:unipocket/models/budget_model.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -11,8 +12,10 @@ void main() {
 
   late DatabaseHelper dbHelper;
 
-  setUp(() {
+  setUp(() async {
     dbHelper = DatabaseHelper();
+    // Ensure we start with a clean state for each test if needed
+    // await dbHelper.clearAllData(); 
   });
 
   group('Database Integration Tests', () {
@@ -84,6 +87,49 @@ void main() {
       expect(summary['income'], 1000.0);
       expect(summary['expense'], 400.0);
       expect(summary['balance'], 600.0);
+    });
+
+    group('Budget & Allowance Tests', () {
+      test('Insert and Retrieve Monthly Allowance Budget', () async {
+        final allowanceBudget = Budget(
+          categoryId: 'allowance_master',
+          amount: 150000, // $1500.00
+          period: 'monthly',
+          startDate: DateTime(2024, 1, 1),
+          endDate: DateTime(2024, 1, 31),
+          isAllowance: true,
+        );
+
+        final id = await dbHelper.insertBudget(allowanceBudget.toMap());
+        expect(id, isNotNull);
+
+        final budgetsData = await dbHelper.getBudgets();
+        final budgets = budgetsData.map((m) => Budget.fromMap(m)).toList();
+        
+        final retrieved = budgets.firstWhere((b) => b.isAllowance == true);
+        expect(retrieved.amount, 150000);
+        expect(retrieved.categoryId, 'allowance_master');
+        expect(retrieved.isAllowance, true);
+      });
+
+      test('Regular Budget has isAllowance as false', () async {
+        final regularBudget = Budget(
+          categoryId: 'groceries',
+          amount: 20000,
+          period: 'monthly',
+          startDate: DateTime.now(),
+          endDate: DateTime.now().add(const Duration(days: 30)),
+          isAllowance: false,
+        );
+
+        await dbHelper.insertBudget(regularBudget.toMap());
+        
+        final budgetsData = await dbHelper.getBudgets();
+        final budgets = budgetsData.map((m) => Budget.fromMap(m)).toList();
+        
+        final retrieved = budgets.firstWhere((b) => b.categoryId == 'groceries');
+        expect(retrieved.isAllowance, false);
+      });
     });
   });
 }

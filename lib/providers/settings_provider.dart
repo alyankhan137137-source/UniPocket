@@ -50,4 +50,7 @@ class SettingsProvider with ChangeNotifier {
   
   /// A convenience method to update the preferred currency.
   void setCurrency(String c) => updateSettings(_settings.copyWith(currency: c));
+
+  /// Updates the monthly allowance amount.
+  void setMonthlyAllowance(int amount) => updateSettings(_settings.copyWith(monthlyAllowance: amount));
 }

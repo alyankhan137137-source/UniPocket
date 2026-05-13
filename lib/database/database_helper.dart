@@ -39,7 +39,7 @@ class DatabaseHelper {
   Future<Database> _initDatabase() async {
     final dir  = await getApplicationDocumentsDirectory();
     final path = join(dir.path, 'unipocket.db');
-    return await openDatabase(path, version: 5,
+    return await openDatabase(path, version: 6,
         onCreate: _onCreate, onUpgrade: _onUpgrade, onConfigure: _onConfigure);
   }
 
@@ -379,10 +379,12 @@ class DatabaseHelper {
     await db.execute('''CREATE TABLE IF NOT EXISTS $tableBudgets (
       id INTEGER PRIMARY KEY AUTOINCREMENT, categoryId TEXT NOT NULL, amount INTEGER NOT NULL,
       period TEXT NOT NULL, startDate TEXT NOT NULL, endDate TEXT NOT NULL,
-      isActive INTEGER DEFAULT 1, is_deleted INTEGER DEFAULT 0, deleted_at TEXT)''');
+      isActive INTEGER DEFAULT 1, is_deleted INTEGER DEFAULT 0, deleted_at TEXT,
+      isAllowance INTEGER NOT NULL DEFAULT 0)''');
     await db.execute('''CREATE TABLE IF NOT EXISTS $tableSettings (
       id INTEGER PRIMARY KEY DEFAULT 1, currency TEXT, theme TEXT, language TEXT,
-      budgetAlertPercentage REAL, enableNotifications INTEGER, enableBiometric INTEGER)''');
+      budgetAlertPercentage REAL, enableNotifications INTEGER, enableBiometric INTEGER,
+      monthlyAllowance INTEGER DEFAULT 0)''');
     await db.execute('''CREATE TABLE IF NOT EXISTS $tableRecurring (
       id TEXT PRIMARY KEY, templateTitle TEXT NOT NULL, amount INTEGER NOT NULL,
       categoryId TEXT NOT NULL, type TEXT NOT NULL, frequency INTEGER NOT NULL,
@@ -399,5 +401,10 @@ class DatabaseHelper {
     await db.insert(tableSettings, UserSettings.defaultSettings().toMap(), conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
-  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {}
+  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 6) {
+      await db.execute('ALTER TABLE $tableSettings ADD COLUMN monthlyAllowance INTEGER DEFAULT 0');
+      await db.execute("ALTER TABLE budgets ADD COLUMN isAllowance INTEGER NOT NULL DEFAULT 0");
+    }
+  }
 }

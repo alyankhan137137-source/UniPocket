@@ -10,11 +10,7 @@ import '../../models/expense_model.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_styles.dart';
 
-/// A screen for managing and tracking budgets by category.
-/// 
-/// This screen displays a summary of the total budget vs. spending and a detailed
-/// list of budgets for specific categories. Users can add new budgets, 
-/// delete existing ones via swipe actions, and view their progress.
+/// A screen for managing and tracking budgets by category and monthly allowance.
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({super.key});
 
@@ -26,7 +22,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize budget and category data
     Future.microtask(() async {
       if (!mounted) return;
       final expenses = context.read<ExpenseProvider>().expenses;
@@ -42,6 +37,8 @@ class _BudgetScreenState extends State<BudgetScreen> {
     final categoryProvider = context.watch<CategoryProvider>();
     final expenseProvider = context.watch<ExpenseProvider>();
 
+    final allowanceBudget = budgetProvider.budgets.where((b) => b.isAllowance).firstOrNull;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -52,9 +49,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.history_rounded, color: AppColors.textPrimary),
-            onPressed: () {
-              // TODO: Implement budget history view
-            },
+            onPressed: () {},
           ),
         ],
       ),
@@ -72,6 +67,8 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       padding: const EdgeInsets.all(20),
                       child: Column(
                         children: [
+                          _buildAllowanceCard(context, budgetProvider, allowanceBudget),
+                          const SizedBox(height: 20),
                           _buildOverviewSection(budgetProvider),
                           const SizedBox(height: 30),
                           _buildBudgetListHeader(),
@@ -79,7 +76,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       ),
                     ),
                   ),
-                  if (budgetProvider.budgets.isEmpty)
+                  if (budgetProvider.budgets.where((b) => !b.isAllowance).isEmpty)
                     _buildEmptyState()
                   else
                     _buildBudgetList(budgetProvider, expenseProvider.expenses),
@@ -97,9 +94,171 @@ class _BudgetScreenState extends State<BudgetScreen> {
     );
   }
 
+  /// Builds the top Monthly Allowance card.
+  Widget _buildAllowanceCard(BuildContext context, BudgetProvider provider, Budget? allowance) {
+    if (allowance == null) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
+        ),
+        child: Column(
+          children: [
+            const Icon(Icons.account_balance_wallet_outlined, size: 40, color: AppColors.primary),
+            const SizedBox(height: 12),
+            const Text("No Monthly Allowance Set", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 8),
+            const Text("Set an allowance to track your total monthly spending.", textAlign: TextAlign.center, style: AppStyles.caption),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => _showAllowanceDialog(context),
+              style: AppStyles.primaryButton,
+              child: const Text("Set Monthly Allowance"),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final allowanceAmount = allowance.amount / 100.0;
+    final spent = provider.totalMonthlySpent;
+    final remaining = allowanceAmount - spent;
+    final percent = allowanceAmount > 0 ? (spent / allowanceAmount) : 0.0;
+    
+    Color progressColor = Colors.green;
+    if (percent >= 1.0) {
+      progressColor = Colors.red;
+    } else if (percent >= 0.75) {
+      progressColor = Colors.orange;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Monthly Allowance", style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
+              GestureDetector(
+                onTap: () => _showAllowanceDialog(context, currentAllowance: allowanceAmount),
+                child: const Icon(Icons.edit_outlined, color: Colors.white, size: 20),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text("\$${allowanceAmount.toStringAsFixed(2)}", style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildAllowanceStat("Spent", "\$${spent.toStringAsFixed(2)}"),
+              _buildAllowanceStat("Remaining", "\$${remaining.toStringAsFixed(2)}", isRight: true),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: percent.clamp(0.0, 1.0),
+              minHeight: 10,
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
+              valueColor: AlwaysStoppedAnimation<Color>(progressColor == Colors.green ? Colors.white : progressColor),
+            ),
+          ),
+          if (percent >= 1.0) ...[
+            const SizedBox(height: 8),
+            const Text("Allowance exceeded!", style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+          ]
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAllowanceStat(String label, String value, {bool isRight = false}) {
+    return Column(
+      crossAxisAlignment: isRight ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+      ],
+    );
+  }
+
+  void _showAllowanceDialog(BuildContext context, {double? currentAllowance}) {
+    final controller = TextEditingController(text: currentAllowance?.toString() ?? "");
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Set Monthly Allowance"),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          autofocus: true,
+          decoration: AppStyles.inputDecoration(
+            labelText: "Allowance Amount",
+            prefixIcon: const Icon(Icons.attach_money),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
+          ElevatedButton(
+            onPressed: () async {
+              final amount = double.tryParse(controller.text);
+              if (amount != null) {
+                final now = DateTime.now();
+                final budget = Budget(
+                  categoryId: 'allowance',
+                  amount: (amount * 100).toInt(),
+                  period: 'monthly',
+                  startDate: DateTime(now.year, now.month, 1),
+                  endDate: DateTime(now.year, now.month + 1, 0),
+                  isAllowance: true,
+                );
+                
+                final budgetProvider = context.read<BudgetProvider>();
+                final existing = budgetProvider.budgets.where((b) => b.isAllowance).firstOrNull;
+                
+                if (existing != null) {
+                  await budgetProvider.updateBudget(budget.copyWith(id: existing.id), context.read<ExpenseProvider>().expenses);
+                } else {
+                  await budgetProvider.addBudget(budget, context.read<ExpenseProvider>().expenses);
+                }
+                
+                if (mounted) Navigator.pop(ctx);
+              }
+            },
+            style: AppStyles.primaryButton,
+            child: const Text("Confirm"),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Builds the top overview card showing total budget performance.
   Widget _buildOverviewSection(BudgetProvider provider) {
-    final double percent = provider.totalBudget > 0 ? (provider.totalSpent / provider.totalBudget) : 0.0;
+    final budgets = provider.budgets.where((b) => !b.isAllowance).toList();
+    if (budgets.isEmpty) return const SizedBox.shrink();
+
+    final double totalBudget = budgets.fold(0.0, (s, b) => s + (b.amount / 100.0));
+    final double totalSpent = budgets.fold(0.0, (s, b) => s + (b.spent / 100.0));
+    final double percent = totalBudget > 0 ? (totalSpent / totalBudget) : 0.0;
     final color = percent > 0.9 ? Colors.red : (percent > 0.7 ? Colors.orange : Colors.green);
 
     return Container(
@@ -123,9 +282,9 @@ class _BudgetScreenState extends State<BudgetScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Total Budget", style: AppStyles.body2),
+                  Text("Category Total", style: AppStyles.body2),
                   const SizedBox(height: 4),
-                  Text("\$${provider.totalBudget.toStringAsFixed(0)}", style: AppStyles.heading2),
+                  Text("\$${totalBudget.toStringAsFixed(0)}", style: AppStyles.heading2),
                 ],
               ),
               Column(
@@ -133,7 +292,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                 children: [
                   Text("Total Spent", style: AppStyles.body2),
                   const SizedBox(height: 4),
-                  Text("\$${provider.totalSpent.toStringAsFixed(0)}", style: AppStyles.heading2.copyWith(color: color)),
+                  Text("\$${totalSpent.toStringAsFixed(0)}", style: AppStyles.heading2.copyWith(color: color)),
                 ],
               ),
             ],
@@ -143,11 +302,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
             alignment: Alignment.center,
             children: [
               SizedBox(
-                height: 150,
-                width: 150,
+                height: 120,
+                width: 120,
                 child: CircularProgressIndicator(
-                  value: percent > 1.0 ? 1.0 : percent,
-                  strokeWidth: 12,
+                  value: percent.clamp(0.0, 1.0),
+                  strokeWidth: 10,
                   backgroundColor: color.withValues(alpha: 0.1),
                   valueColor: AlwaysStoppedAnimation<Color>(color),
                   strokeCap: StrokeCap.round,
@@ -156,18 +315,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("${(percent * 100).toStringAsFixed(0)}%", style: AppStyles.heading1),
+                  Text("${(percent * 100).toStringAsFixed(0)}%", style: AppStyles.heading3),
                   Text("Used", style: AppStyles.caption),
                 ],
               ),
             ],
-          ),
-          const SizedBox(height: 20),
-          Text(
-            provider.budgetRemaining >= 0 
-                ? "\$${provider.budgetRemaining.toStringAsFixed(0)} Remaining"
-                : "\$${(provider.budgetRemaining * -1).toStringAsFixed(0)} Overspent",
-            style: AppStyles.body1.copyWith(fontWeight: FontWeight.bold, color: provider.budgetRemaining >= 0 ? Colors.green : Colors.red),
           ),
         ],
       ),
@@ -187,12 +339,14 @@ class _BudgetScreenState extends State<BudgetScreen> {
 
   /// Builds the list of category budgets using [Slidable] for delete actions.
   Widget _buildBudgetList(BudgetProvider budgetProvider, List<Expense> expenses) {
+    final budgets = budgetProvider.budgets.where((b) => !b.isAllowance).toList();
+
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, index) {
-            final budget = budgetProvider.budgets[index];
+            final budget = budgets[index];
             final percent = budget.percentSpent / 100;
             final color = percent > 1.0 ? Colors.red : (percent > 0.8 ? Colors.orange : Colors.green);
 
@@ -234,7 +388,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
-                            child: const Text("📦", style: TextStyle(fontSize: 20)), // Placeholder icon
+                            child: const Text("📦", style: TextStyle(fontSize: 20)), 
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -259,7 +413,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: LinearProgressIndicator(
-                          value: percent > 1.0 ? 1.0 : percent,
+                          value: percent.clamp(0.0, 1.0),
                           minHeight: 8,
                           backgroundColor: color.withValues(alpha: 0.1),
                           valueColor: AlwaysStoppedAnimation<Color>(color),
@@ -284,7 +438,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
               ),
             );
           },
-          childCount: budgetProvider.budgets.length,
+          childCount: budgets.length,
         ),
       ),
     );

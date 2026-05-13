@@ -31,6 +31,9 @@ class Budget {
   /// Note: This is a calculated field used in the UI and not stored in the database.
   final int spent; 
 
+  /// Whether this budget represents a master monthly allowance.
+  final bool isAllowance;
+
   Budget({
     this.id,
     required this.categoryId,
@@ -40,6 +43,7 @@ class Budget {
     required this.endDate,
     this.isActive = true,
     this.spent = 0,
+    this.isAllowance = false,
   });
 
   /// Creates a copy of this [Budget] with the given fields replaced.
@@ -52,6 +56,7 @@ class Budget {
     DateTime? endDate,
     bool? isActive,
     int? spent,
+    bool? isAllowance,
   }) {
     return Budget(
       id: id ?? this.id,
@@ -62,6 +67,7 @@ class Budget {
       endDate: endDate ?? this.endDate,
       isActive: isActive ?? this.isActive,
       spent: spent ?? this.spent,
+      isAllowance: isAllowance ?? this.isAllowance,
     );
   }
 
@@ -76,6 +82,7 @@ class Budget {
       endDate: DateTime.parse(map['endDate']),
       isActive: map['isActive'] == 1,
       spent: map['spent'] != null ? (map['spent'] as num).toInt() : 0,
+      isAllowance: (map['isAllowance'] ?? 0) == 1,
     );
   }
 
@@ -89,6 +96,7 @@ class Budget {
       'startDate': startDate.toIso8601String(),
       'endDate': endDate.toIso8601String(),
       'isActive': isActive ? 1 : 0,
+      'isAllowance': isAllowance ? 1 : 0,
     };
   }
 
@@ -97,7 +105,7 @@ class Budget {
 
   @override
   String toString() {
-    return 'Budget(id: $id, categoryId: $categoryId, amount: $amount, period: $period)';
+    return 'Budget(id: $id, categoryId: $categoryId, amount: $amount, period: $period, isAllowance: $isAllowance)';
   }
 
   /// Returns the percentage of the budget that has been consumed.

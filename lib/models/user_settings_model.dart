@@ -24,6 +24,9 @@ class UserSettings {
   /// Whether biometric authentication (Fingerprint/FaceID) is required to open the app.
   final bool enableBiometric;
 
+  /// The monthly allowance amount in cents.
+  final int monthlyAllowance;
+
   UserSettings({
     required this.currency,
     required this.theme,
@@ -31,6 +34,7 @@ class UserSettings {
     required this.budgetAlertPercentage,
     required this.enableNotifications,
     required this.enableBiometric,
+    this.monthlyAllowance = 0,
   });
 
   /// Provides the standard default configuration for a new user session.
@@ -42,6 +46,7 @@ class UserSettings {
       budgetAlertPercentage: 80.0,
       enableNotifications: true,
       enableBiometric: false,
+      monthlyAllowance: 0,
     );
   }
 
@@ -53,6 +58,7 @@ class UserSettings {
     double? budgetAlertPercentage,
     bool? enableNotifications,
     bool? enableBiometric,
+    int? monthlyAllowance,
   }) {
     return UserSettings(
       currency: currency ?? this.currency,
@@ -61,6 +67,7 @@ class UserSettings {
       budgetAlertPercentage: budgetAlertPercentage ?? this.budgetAlertPercentage,
       enableNotifications: enableNotifications ?? this.enableNotifications,
       enableBiometric: enableBiometric ?? this.enableBiometric,
+      monthlyAllowance: monthlyAllowance ?? this.monthlyAllowance,
     );
   }
 
@@ -73,6 +80,7 @@ class UserSettings {
       budgetAlertPercentage: (map['budgetAlertPercentage'] as num).toDouble(),
       enableNotifications: map['enableNotifications'] == 1 || map['enableNotifications'] == true,
       enableBiometric: map['enableBiometric'] == 1 || map['enableBiometric'] == true,
+      monthlyAllowance: map['monthlyAllowance'] ?? 0,
     );
   }
 
@@ -85,6 +93,7 @@ class UserSettings {
       'budgetAlertPercentage': budgetAlertPercentage,
       'enableNotifications': enableNotifications ? 1 : 0,
       'enableBiometric': enableBiometric ? 1 : 0,
+      'monthlyAllowance': monthlyAllowance,
     };
   }
 
@@ -96,6 +105,6 @@ class UserSettings {
 
   @override
   String toString() {
-    return 'UserSettings(currency: $currency, theme: $theme, alert: $budgetAlertPercentage%)';
+    return 'UserSettings(currency: $currency, theme: $theme, alert: $budgetAlertPercentage%, allowance: $monthlyAllowance)';
   }
 }

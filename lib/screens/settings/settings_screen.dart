@@ -20,11 +20,6 @@ import '../../utils/smart_features.dart';
 import '../../router/app_routes.dart';
 
 /// A screen that provides various configuration options for the application.
-///
-/// This screen allows users to manage their profile (name, email),
-/// preferences (currency, theme, language), security (PIN, biometrics),
-/// and data (exporting, clearing). It integrates with multiple providers
-/// to ensure settings are persisted and reflected immediately in the UI.
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
   @override
@@ -52,7 +47,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     super.dispose();
   }
 
-  /// Checks if a security PIN is currently set on the device.
   Future<void> _checkPinStatus() async {
     final hasPin = await SecurityHelper.hasPin();
     if (!mounted) return;
@@ -101,7 +95,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               _buildListTile("Language", "English", Icons.language_rounded, () {}, cardColor),
             ]),
             const SizedBox(height: 20),
-            _buildSection("Budget & Alerts", cardColor, [
+            _buildSection("Budget & Allowance", cardColor, [
+              _buildListTile(
+                "Monthly Allowance", 
+                "${settings.currency} ${(settings.monthlyAllowance / 100).toStringAsFixed(2)}", 
+                Icons.account_balance_wallet_outlined,
+                () => _showAllowanceDialog(context, settingsProvider), 
+                cardColor
+              ),
               _buildSwitchTile("Push Notifications", settings.enableNotifications,
                 Icons.notifications_active_outlined,
                 (val) => settingsProvider.updateSettings(settings.copyWith(enableNotifications: val))),
@@ -156,7 +157,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  /// Builds the header containing user profile summary and edit controls.
+  void _showAllowanceDialog(BuildContext context, SettingsProvider provider) {
+    final controller = TextEditingController(text: (provider.settings.monthlyAllowance / 100).toString());
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Monthly Allowance"),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: AppStyles.inputDecoration(
+            labelText: "Amount (${provider.settings.currency})",
+            prefixIcon: const Icon(Icons.account_balance_wallet),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
+          ElevatedButton(
+            onPressed: () {
+              final val = double.tryParse(controller.text) ?? 0.0;
+              provider.setMonthlyAllowance((val * 100).toInt());
+              Navigator.pop(ctx);
+            },
+            style: AppStyles.primaryButton,
+            child: const Text("Save"),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildProfileHeader(UserProfile profile, Color cardColor) {
     final initials = profile.name.isNotEmpty
         ? profile.name.trim().split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join().toUpperCase()
@@ -207,7 +238,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  /// Builds the inline form for updating profile information.
   Widget _buildProfileEditForm(UserProfile profile) {
     return Column(
       children: [
@@ -260,7 +290,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  /// Builds a titled container for grouping settings tiles.
   Widget _buildSection(String title, Color cardColor, List<Widget> children) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,7 +310,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  /// Builds a standard list tile for settings with an icon and trailing arrow.
   Widget _buildListTile(String title, String trailing, IconData icon, VoidCallback onTap, Color cardColor, {Color? color}) {
     return ListTile(
       leading: Container(
@@ -302,7 +330,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  /// Builds a switch tile for toggling boolean settings.
   Widget _buildSwitchTile(String title, bool value, IconData icon, Function(bool) onChanged) {
     return ListTile(
       leading: Container(
@@ -315,7 +342,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  /// Builds a tile containing a slider for numeric ranges.
   Widget _buildSliderTile(String title, double value, Function(double) onChanged) {
     return Column(
       children: [
@@ -337,7 +363,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  /// Displays a modal to choose the application's theme mode.
   void _showThemePicker(BuildContext context, ThemeProvider themeProvider) {
     showModalBottomSheet(
       context: context,
@@ -360,7 +385,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  /// Displays a currency selector.
   void _showCurrencyPicker(BuildContext context, SettingsProvider provider) {
     showCurrencyPicker(
       context: context,
@@ -368,7 +392,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  /// Navigates to the PIN setup screen.
   void _handlePinSetup(BuildContext context) {
     Navigator.push(context, MaterialPageRoute(
       builder: (_) => PinLockScreen(
@@ -382,7 +405,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     ));
   }
 
-  /// Prompts for confirmation and clears the security PIN.
   Future<void> _removePin(BuildContext context) async {
     showDialog(
       context: context,
@@ -405,7 +427,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  /// Triggers generation of sample data for testing purposes.
   Future<void> _generateDemoData(BuildContext context) async {
     final provider = context.read<ExpenseProvider>();
     final messenger = ScaffoldMessenger.of(context);
@@ -422,7 +443,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       const SnackBar(content: Text('✅ Demo data added successfully!')));
   }
 
-  /// Prompts for confirmation and clears all application data.
   void _confirmClearData(BuildContext context) {
     showDialog(
       context: context,
@@ -458,7 +478,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  /// Displays contact information for developer support.
   void _showContactSupport(BuildContext context) {
     showDialog(
       context: context,

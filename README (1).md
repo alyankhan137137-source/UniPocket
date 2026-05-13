@@ -9,47 +9,36 @@ UniPocket is a fully offline expense and budget tracking app built with **Flutte
 ## ✨ Features
 
 ### 💸 Expense & Allowance Tracking
-- Add allowance and expenses in seconds
-- 12 built-in student categories (Rent, Groceries, Eating Out, Transport, and more)
-- Smart category suggestions based on transaction title
-- Duplicate transaction detection
-- Edit and delete transactions with swipe gestures
-- Undo delete with 3-second snackbar
+- **Quick Logging:** Add allowance and expenses in seconds.
+- **Student-Centric:** 12 built-in categories specifically for university life (Rent, Groceries, Eating Out, Transport, etc.).
+- **Smart Logic:** Category suggestions based on title and duplicate transaction detection.
+- **Interactive UI:** Swipe to edit or delete with a 3-second "Undo" safety net.
+- **Monthly Allowance:** Set a master monthly funding goal (parents, jobs, etc.) and track your total spending against it.
 
-### 📊 Budget Management
-- Set budgets per category
-- Real-time budget progress tracking
-- Overspend alerts and visual indicators
+### 🔁 Recurring Transactions
+- **Automation:** Automate your regular bills, subscriptions, or weekly allowances.
+- **Flexible Scheduling:** Set up daily, weekly, monthly, or yearly repeats.
 
-### 📈 Analytics
-- Spending overview (Today / This Month / Allowance)
-- Category-wise breakdown
-- Balance card with allowance vs expense summary
+### 📊 Budget & Analytics
+- **Master Budget:** A special top-level "Monthly Allowance" budget that sits above regular category budgets for comprehensive financial oversight.
+- **Budget Tracking:** Set monthly limits per category with real-time progress bars.
+- **Visual Insights:** Beautifully rendered charts for category breakdowns and balance history.
+- **Overspend Alerts:** Visual indicators when you're nearing or exceeding your limits.
 
-### 🎨 UI & UX
-- Beautiful purple gradient design
-- Full **Dark Mode** support
-- Eye icon to hide/show balance privately
-- Haptic feedback on interactions
-- Double tap to clear amount field
-- Remembers your last used category
-- Smooth animations and transitions
-- Onboarding screen for first-time setup
+### 🔔 Smart Reminders & Widgets
+- **Daily Reminders:** Stay consistent with customizable notification reminders.
+- **Home Screen Widgets:** View your balance and quick-add expenses directly from your home screen.
 
-### ⚙️ Settings & Customization
-- Multi-currency support (100+ currencies)
-- Theme switcher (Light / Dark / System)
-- Profile with editable name and email
-- PIN lock security
-- Budget alert threshold slider
-- Demo data generator to try the app instantly
-- Export data (PDF & Excel)
+### 🔒 Security & Privacy
+- **100% Offline:** No cloud, no tracking. Your data never leaves your phone.
+- **Biometric Lock:** Secure your financial data with Fingerprint, FaceID, or a custom PIN.
+- **Privacy Mode:** Hide sensitive balance amounts with a single tap.
 
-### 🔒 Privacy & Security
-- 100% offline — no internet required
-- Data stored locally using SQLite/SharedPreferences
-- Optional PIN protection
-- Privacy mode to hide balance
+### ⚙️ Power User Tools
+- **Export Reports:** Generate professional PDF or Excel reports for your records.
+- **Multi-Currency:** Support for over 100+ global currencies.
+- **Customizable Profile:** Personalize with your name, email, and profile photo.
+- **Demo Mode:** Populate the app with sample data instantly to explore features.
 
 ---
 
@@ -58,17 +47,12 @@ UniPocket is a fully offline expense and budget tracking app built with **Flutte
 | Technology | Purpose |
 |------------|---------|
 | [Flutter](https://flutter.dev) | UI Framework |
-| [Dart](https://dart.dev) | Programming Language |
-| [Riverpod](https://riverpod.dev) | State Management |
-| [Provider](https://pub.dev/packages/provider) | Legacy State |
-| [GoRouter](https://pub.dev/packages/go_router) | Navigation |
-| [SharedPreferences](https://pub.dev/packages/shared_preferences) | Local Storage (Web) |
-| [SQLite / sqflite](https://pub.dev/packages/sqflite) | Local Storage (Mobile) |
-| [Google Fonts](https://pub.dev/packages/google_fonts) | Typography |
-| [FL Chart](https://pub.dev/packages/fl_chart) | Charts & Graphs |
-| [Currency Picker](https://pub.dev/packages/currency_picker) | Currency Selector |
-| [Flutter Slidable](https://pub.dev/packages/flutter_slidable) | Swipe Actions |
-| [Lottie](https://pub.dev/packages/lottie) | Animations |
+| [Riverpod](https://riverpod.dev) | State Management & Code Generation |
+| [GoRouter](https://pub.dev/packages/go_router) | Declarative Routing |
+| [SQLite / sqflite](https://pub.dev/packages/sqflite) | Local Persistence |
+| [FL Chart](https://pub.dev/packages/fl_chart) | Data Visualization |
+| [Local Auth](https://pub.dev/packages/local_auth) | Biometric Security |
+| [Home Widget](https://pub.dev/packages/home_widget) | Android/iOS Integration |
 
 ---
 
@@ -77,37 +61,33 @@ UniPocket is a fully offline expense and budget tracking app built with **Flutte
 ### Prerequisites
 - Flutter SDK `^3.5.0`
 - Dart SDK `^3.5.0`
-- Android Studio or VS Code
 
 ### Installation
 
-```bash
-# Clone the repository
-git clone https://github.com/alyankhan137137-source/unipocket.git
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/alyankhan137137-source/unipocket.git
+   ```
 
-# Navigate into the project
-cd unipocket
+2. **Navigate into the project root:**
+   ```bash
+   cd unipocket
+   ```
 
-# Install dependencies
-flutter pub get
+3. **Install dependencies:**
+   ```bash
+   flutter pub get
+   ```
 
-# Run on Chrome (Web)
-flutter run -d chrome
+4. **Generate necessary code (Required for Riverpod & Router):**
+   ```bash
+   dart run build_runner build --delete-conflicting-outputs
+   ```
 
-# Run on Android device
-flutter run
-```
-
----
-
-## 📱 Platform Support
-
-| Platform | Status |
-|----------|--------|
-| 🌐 Web (Chrome) | ✅ Supported |
-| 🤖 Android | ✅ Supported (API 21+) |
-| 🍎 iOS | 🔄 Coming Soon |
-| 🖥️ Windows | 🔄 Coming Soon |
+5. **Run the app:**
+   ```bash
+   flutter run
+   ```
 
 ---
 
@@ -115,52 +95,32 @@ flutter run
 
 ```
 lib/
-├── constants/         # Colors, styles, app constants
-├── core/              # Validators, error handling, soft delete
-├── database/          # Database helper (SQLite + SharedPreferences)
-├── features/          # Feature modules (profile, transactions, recurring, notifications)
-├── models/            # Data models (Expense, Budget, Category, Settings)
-├── providers/         # State management providers
-├── repositories/      # Data repositories
-├── router/            # GoRouter navigation setup
-├── screens/           # UI screens
-│   ├── analytics/     # Analytics & charts
-│   ├── auth/          # PIN lock screen
-│   ├── budget/        # Budget management
-│   ├── expenses/      # Add/edit transactions
-│   ├── home/          # Dashboard
-│   ├── onboarding/    # First-time setup
-│   └── settings/      # App settings
-├── utils/             # Utilities (PDF, Excel, Smart Features)
-└── widgets/           # Reusable widgets
+├── constants/         # App-wide colors, themes, and static strings
+├── core/              # Validators, mixins, and core business logic
+├── database/          # SQLite helpers and SharedPreferences logic
+├── features/          # Feature-based modules (Recurring, Notifications, Profile)
+├── models/            # Data entities and JSON serialization
+├── providers/         # Riverpod providers for state handling
+├── repositories/      # Data access layer abstraction
+├── router/            # Navigation configuration (GoRouter)
+├── screens/           # Main UI views (Home, Analytics, Settings, etc.)
+├── utils/             # Helper classes (PDF/Excel generators, formatters)
+└── widgets/           # Shared UI components
 ```
-
----
-
-## 🤝 Contributing
-
-This is a personal project but contributions are welcome!
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
 ---
 
 ## 👨‍💻 Developer
 
 **Alyan Khan**
-
 - GitHub: [@alyankhan137137-source](https://github.com/alyankhan137137-source)
 
 ---
 
-## ⭐ Show Your Support
+## ⭐ Support
 
-If you like this project, give it a ⭐ on GitHub — it means a lot!
+If you find this app helpful, please give it a ⭐ on GitHub!
 
 ---
 
-*Built with ❤️ using Flutter*
+*Built with ❤️ for students, by a student.*
