@@ -9,6 +9,9 @@ import '../screens/expenses/add_expense_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/settings/privacy_policy_screen.dart';
 import '../screens/main_navigation_screen.dart';
+import '../features/parent_link/screens/parent_link_screen.dart';
+import '../features/parent_link/screens/parent_view_screen.dart';
+import '../features/subscription/screens/upgrade_screen.dart';
 import 'app_routes.dart';
 
 /// Global navigator key to access the [NavigatorState] outside of the widget tree.
@@ -71,6 +74,18 @@ final goRouter = GoRouter(
     GoRoute(
       path: AppRoutes.privacyPolicy,
       builder: (context, state) => const PrivacyPolicyScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.parentLink,
+      builder: (context, state) => const ParentLinkScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.parentView,
+      builder: (context, state) => const ParentViewScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.upgrade,
+      builder: (context, state) => const UpgradeScreen(),
     ),
   ],
 );

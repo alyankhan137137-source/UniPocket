@@ -55,4 +55,8 @@ class AppRoutes {
 
   /// Access to soft-deleted items that can be restored.
   static const String trash = '/trash';
+
+  static const String parentLink = '/parent-link';
+  static const String parentView = '/parent-view';
+  static const String upgrade = '/upgrade';
 }

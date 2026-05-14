@@ -39,7 +39,7 @@ class DatabaseHelper {
   Future<Database> _initDatabase() async {
     final dir  = await getApplicationDocumentsDirectory();
     final path = join(dir.path, 'unipocket.db');
-    return await openDatabase(path, version: 6,
+    return await openDatabase(path, version: 8,
         onCreate: _onCreate, onUpgrade: _onUpgrade, onConfigure: _onConfigure);
   }
 
@@ -384,7 +384,8 @@ class DatabaseHelper {
     await db.execute('''CREATE TABLE IF NOT EXISTS $tableSettings (
       id INTEGER PRIMARY KEY DEFAULT 1, currency TEXT, theme TEXT, language TEXT,
       budgetAlertPercentage REAL, enableNotifications INTEGER, enableBiometric INTEGER,
-      monthlyAllowance INTEGER DEFAULT 0)''');
+      monthlyAllowance INTEGER DEFAULT 0, subscriptionTier TEXT NOT NULL DEFAULT 'free',
+      subscriptionExpiresAt TEXT)''');
     await db.execute('''CREATE TABLE IF NOT EXISTS $tableRecurring (
       id TEXT PRIMARY KEY, templateTitle TEXT NOT NULL, amount INTEGER NOT NULL,
       categoryId TEXT NOT NULL, type TEXT NOT NULL, frequency INTEGER NOT NULL,
@@ -398,6 +399,12 @@ class DatabaseHelper {
     await db.execute('CREATE VIEW IF NOT EXISTS active_categories AS SELECT * FROM $tableCategories WHERE is_active = 1');
     await db.execute('CREATE VIEW IF NOT EXISTS active_recurring AS SELECT * FROM $tableRecurring WHERE is_deleted = 0 AND isActive = 1');
     
+    await db.execute('''CREATE TABLE IF NOT EXISTS parent_links (
+      id TEXT PRIMARY KEY, accessCode TEXT NOT NULL,
+      isActive INTEGER NOT NULL DEFAULT 1,
+      createdAt TEXT NOT NULL, expiresAt TEXT NOT NULL
+    )''');
+    
     await db.insert(tableSettings, UserSettings.defaultSettings().toMap(), conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
@@ -405,6 +412,17 @@ class DatabaseHelper {
     if (oldVersion < 6) {
       await db.execute('ALTER TABLE $tableSettings ADD COLUMN monthlyAllowance INTEGER DEFAULT 0');
       await db.execute("ALTER TABLE budgets ADD COLUMN isAllowance INTEGER NOT NULL DEFAULT 0");
+    }
+    if (oldVersion < 7) {
+      await db.execute('''CREATE TABLE IF NOT EXISTS parent_links (
+        id TEXT PRIMARY KEY, accessCode TEXT NOT NULL,
+        isActive INTEGER NOT NULL DEFAULT 1,
+        createdAt TEXT NOT NULL, expiresAt TEXT NOT NULL
+      )''');
+    }
+    if (oldVersion < 8) {
+      await db.execute("ALTER TABLE $tableSettings ADD COLUMN subscriptionTier TEXT NOT NULL DEFAULT 'free'");
+      await db.execute("ALTER TABLE $tableSettings ADD COLUMN subscriptionExpiresAt TEXT");
     }
   }
 }

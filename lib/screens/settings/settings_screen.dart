@@ -143,6 +143,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 () => _generateDemoData(context), cardColor),
             ]),
             const SizedBox(height: 20),
+            _buildSection("Family", cardColor, [
+              _buildListTile("Parent Link", "Share your status", Icons.family_restroom,
+                () => context.push(AppRoutes.parentLink), cardColor),
+              _buildListTile("Parent View", "View a summary", Icons.visibility_outlined,
+                () => context.push(AppRoutes.parentView), cardColor),
+            ]),
+            const SizedBox(height: 20),
             _buildSection("About", cardColor, [
               _buildListTile("App Version", "1.0.0", Icons.info_outline_rounded, () {}, cardColor),
               _buildListTile("Privacy Policy", "", Icons.privacy_tip_outlined,

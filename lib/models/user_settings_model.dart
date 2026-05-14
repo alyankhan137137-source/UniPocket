@@ -27,6 +27,12 @@ class UserSettings {
   /// The monthly allowance amount in cents.
   final int monthlyAllowance;
 
+  /// The current subscription level of the user ('free' or 'parent_plus').
+  final String subscriptionTier;
+
+  /// The expiration date of the current subscription in ISO 8601 format.
+  final String? subscriptionExpiresAt;
+
   UserSettings({
     required this.currency,
     required this.theme,
@@ -35,6 +41,8 @@ class UserSettings {
     required this.enableNotifications,
     required this.enableBiometric,
     this.monthlyAllowance = 0,
+    this.subscriptionTier = 'free',
+    this.subscriptionExpiresAt,
   });
 
   /// Provides the standard default configuration for a new user session.
@@ -47,6 +55,8 @@ class UserSettings {
       enableNotifications: true,
       enableBiometric: false,
       monthlyAllowance: 0,
+      subscriptionTier: 'free',
+      subscriptionExpiresAt: null,
     );
   }
 
@@ -59,6 +69,8 @@ class UserSettings {
     bool? enableNotifications,
     bool? enableBiometric,
     int? monthlyAllowance,
+    String? subscriptionTier,
+    String? subscriptionExpiresAt,
   }) {
     return UserSettings(
       currency: currency ?? this.currency,
@@ -68,6 +80,8 @@ class UserSettings {
       enableNotifications: enableNotifications ?? this.enableNotifications,
       enableBiometric: enableBiometric ?? this.enableBiometric,
       monthlyAllowance: monthlyAllowance ?? this.monthlyAllowance,
+      subscriptionTier: subscriptionTier ?? this.subscriptionTier,
+      subscriptionExpiresAt: subscriptionExpiresAt ?? this.subscriptionExpiresAt,
     );
   }
 
@@ -81,6 +95,8 @@ class UserSettings {
       enableNotifications: map['enableNotifications'] == 1 || map['enableNotifications'] == true,
       enableBiometric: map['enableBiometric'] == 1 || map['enableBiometric'] == true,
       monthlyAllowance: map['monthlyAllowance'] ?? 0,
+      subscriptionTier: map['subscriptionTier'] ?? 'free',
+      subscriptionExpiresAt: map['subscriptionExpiresAt'],
     );
   }
 
@@ -94,6 +110,8 @@ class UserSettings {
       'enableNotifications': enableNotifications ? 1 : 0,
       'enableBiometric': enableBiometric ? 1 : 0,
       'monthlyAllowance': monthlyAllowance,
+      'subscriptionTier': subscriptionTier,
+      'subscriptionExpiresAt': subscriptionExpiresAt,
     };
   }
 
@@ -105,6 +123,6 @@ class UserSettings {
 
   @override
   String toString() {
-    return 'UserSettings(currency: $currency, theme: $theme, alert: $budgetAlertPercentage%, allowance: $monthlyAllowance)';
+    return 'UserSettings(tier: $subscriptionTier, currency: $currency, theme: $theme, alert: $budgetAlertPercentage%, allowance: $monthlyAllowance)';
   }
 }
