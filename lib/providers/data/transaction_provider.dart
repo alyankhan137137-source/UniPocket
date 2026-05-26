@@ -8,7 +8,7 @@ part 'transaction_provider.g.dart';
 /// Provides an instance of [TransactionRepository] initialized with [DatabaseHelper].
 @riverpod
 TransactionRepository transactionRepository(TransactionRepositoryRef ref) {
-  return TransactionRepository(DatabaseHelper());
+  return TransactionRepository(DatabaseHelper.instance);
 }
 
 /// A notifier that manages the state of financial transactions.

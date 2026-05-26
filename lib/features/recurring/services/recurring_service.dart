@@ -8,7 +8,7 @@ import '../models/recurrence_frequency.dart';
 /// new transactions need to be created based on the current date and the 
 /// template's frequency and interval.
 class RecurringService {
-  final DatabaseHelper _dbHelper = DatabaseHelper();
+  final _dbHelper = DatabaseHelper.instance;
 
   /// Checks and generates all due transactions from active recurring templates.
   /// 

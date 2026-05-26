@@ -18,6 +18,8 @@ import '../../providers/budget_provider.dart';
 import '../../providers/category_provider.dart';
 import '../../utils/smart_features.dart';
 import '../../router/app_routes.dart';
+import '../../features/parent_link/screens/parent_link_screen.dart';
+import '../../features/parent_link/screens/parent_view_screen.dart';
 
 /// A screen that provides various configuration options for the application.
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -142,13 +144,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Icons.auto_awesome_outlined,
                 () => _generateDemoData(context), cardColor),
             ]),
-            const SizedBox(height: 20),
-            _buildSection("Family", cardColor, [
-              _buildListTile("Parent Link", "Share your status", Icons.family_restroom,
-                () => context.push(AppRoutes.parentLink), cardColor),
-              _buildListTile("Parent View", "View a summary", Icons.visibility_outlined,
-                () => context.push(AppRoutes.parentView), cardColor),
-            ]),
+            const _ParentLinkSection(),
             const SizedBox(height: 20),
             _buildSection("About", cardColor, [
               _buildListTile("App Version", "1.0.0", Icons.info_outline_rounded, () {}, cardColor),
@@ -505,6 +501,72 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Close")),
         ],
       ),
+    );
+  }
+}
+
+class _ParentLinkSection extends StatelessWidget {
+  const _ParentLinkSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(left: 8, top: 8, bottom: 12),
+          child: Text(
+            'Family',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+              letterSpacing: 1.2,
+            ),
+          ),
+        ),
+        Card(
+          elevation: 0.5,
+          margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(color: Colors.grey.withOpacity(0.1)),
+          ),
+          child: Column(
+            children: [
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.link, color: AppColors.primary, size: 20),
+                ),
+                title: const Text('Parent Link', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+                subtitle: const Text('Generate a code for your parent to view your spending'),
+                trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textHint),
+                onTap: () => context.push(AppRoutes.parentLink),
+              ),
+              const Divider(height: 1, indent: 56, endIndent: 16),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.family_restroom, color: AppColors.primary, size: 20),
+                ),
+                title: const Text('Parent View', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+                subtitle: const Text("Enter a student's code to view their spending"),
+                trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textHint),
+                onTap: () => context.push(AppRoutes.parentView),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

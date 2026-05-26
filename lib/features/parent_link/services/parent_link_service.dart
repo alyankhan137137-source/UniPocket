@@ -1,85 +1,75 @@
 import 'dart:convert';
-import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/parent_link_model.dart';
-import '../models/student_snapshot_model.dart';
-import '../../../providers/expense_provider.dart';
+import 'package:intl/intl.dart';
+import 'package:unipocket/database/database_helper.dart';
+import 'package:unipocket/providers/expense_provider.dart';
+import 'package:unipocket/features/parent_link/models/parent_link_model.dart';
+import 'package:unipocket/features/parent_link/models/student_snapshot_model.dart';
 
-/// Service responsible for managing the Parent Link lifecycle and data snapshots.
+/// Service for managing parent link generation and data snapshot building.
 class ParentLinkService {
-  static final ParentLinkService _instance = ParentLinkService._internal();
-  factory ParentLinkService() => _instance;
+  static const String _storageKey = 'pt_parent_link_data';
+
+  // Singleton pattern
   ParentLinkService._internal();
+  static final ParentLinkService instance = ParentLinkService._internal();
 
-  static const String _storageKey = 'pt_parent_link';
-
-  /// Generates and persists a new parent link.
   Future<ParentLink> generateLink() async {
-    final newLink = ParentLink.generate();
+    final link = ParentLink.generate();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_storageKey, jsonEncode(newLink.toMap()));
-    return newLink;
+    await prefs.setString(_storageKey, jsonEncode(link.toMap()));
+    return link;
   }
 
-  /// Retrieves the active link if it exists and hasn't expired.
   Future<ParentLink?> getActiveLink() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_storageKey);
-    if (raw == null) return null;
+    final data = prefs.getString(_storageKey);
+    if (data == null) return null;
 
-    final link = ParentLink.fromMap(jsonDecode(raw));
+    final link = ParentLink.fromMap(jsonDecode(data) as Map<String, dynamic>);
+    
     if (link.isActive && !link.isExpired) {
       return link;
     }
     return null;
   }
 
-  /// Deactivates the current link.
   Future<void> deactivateLink() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_storageKey);
-    if (raw != null) {
-      final map = jsonDecode(raw) as Map<String, dynamic>;
-      map['isActive'] = 0;
-      await prefs.setString(_storageKey, jsonEncode(map));
-    }
+    final data = prefs.getString(_storageKey);
+    if (data == null) return;
+
+    final map = jsonDecode(data) as Map<String, dynamic>;
+    map['isActive'] = false;
+    await prefs.setString(_storageKey, jsonEncode(map));
   }
 
-  /// Builds a student spending snapshot from current application state.
-  Future<StudentSnapshot> buildSnapshot(
-    ExpenseProvider expenseProvider, 
-    String studentName,
-  ) async {
+  Future<StudentSnapshot> buildSnapshot(ExpenseProvider provider, String studentName) async {
     final now = DateTime.now();
+    final settings = await DatabaseHelper.instance.getSettings();
     
-    // Calculate spending for current month
-    final spentThisMonth = expenseProvider.expenses
-        .where((e) => e.isExpense && 
-                     e.date.month == now.month && 
-                     e.date.year == now.year)
+    final spentThisMonth = provider.expenses
+        .where((e) => e.isExpense && e.date.month == now.month && e.date.year == now.year)
         .fold(0.0, (sum, e) => sum + (e.amount / 100.0));
 
-    // Get the last 5 transactions
-    final recent = expenseProvider.expenses.take(5).map((e) => {
+    final double monthlyAllowance = settings.monthlyAllowance / 100.0;
+    final double remainingBudget = monthlyAllowance - spentThisMonth;
+
+    final recentTransactions = provider.expenses.take(5).map((e) => {
       'title': e.title,
       'amount': e.amount / 100.0,
       'type': e.type,
-      'date': DateFormat('dd MMM').format(e.date),
+      'date': DateFormat('dd MMM yyyy').format(e.date),
     }).toList();
-
-    // In a real app, these would come from BudgetProvider, 
-    // but we'll use defaults if not specified.
-    const double monthlyAllowance = 0.0; 
-    final remainingBudget = monthlyAllowance > 0 ? (monthlyAllowance - spentThisMonth) : 0.0;
 
     return StudentSnapshot(
       studentName: studentName,
-      currentBalance: expenseProvider.currentBalance,
+      currentBalance: provider.currentBalance,
       monthlyAllowance: monthlyAllowance,
       spentThisMonth: spentThisMonth,
       remainingBudget: remainingBudget,
-      recentTransactions: recent,
-      lastUpdated: DateTime.now(),
+      recentTransactions: recentTransactions,
+      lastUpdated: now,
     );
   }
 }

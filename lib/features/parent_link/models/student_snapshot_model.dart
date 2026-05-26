@@ -1,4 +1,3 @@
-/// A point-in-time snapshot of a student's financial status for parent review.
 class StudentSnapshot {
   final String studentName;
   final double currentBalance;

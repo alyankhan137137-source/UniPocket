@@ -53,10 +53,6 @@ final goRouter = GoRouter(
           path: AppRoutes.budget,
           builder: (context, state) => const BudgetScreen(),
         ),
-        GoRoute(
-          path: AppRoutes.settings,
-          builder: (context, state) => const SettingsScreen(),
-        ),
       ],
     ),
 
@@ -64,6 +60,20 @@ final goRouter = GoRouter(
     GoRoute(
       path: AppRoutes.addTransaction,
       builder: (context, state) => const AddExpenseScreen(),
+    ),
+    
+    // Settings and parent link routes
+    GoRoute(
+      path: AppRoutes.settings,
+      builder: (context, state) => const SettingsScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.parentLink,
+      builder: (context, state) => const ParentLinkScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.parentView,
+      builder: (context, state) => const ParentViewScreen(),
     ),
     
     // Deeper settings routes (can be pushed on top of the shell)
@@ -74,14 +84,6 @@ final goRouter = GoRouter(
     GoRoute(
       path: AppRoutes.privacyPolicy,
       builder: (context, state) => const PrivacyPolicyScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.parentLink,
-      builder: (context, state) => const ParentLinkScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.parentView,
-      builder: (context, state) => const ParentViewScreen(),
     ),
     GoRoute(
       path: AppRoutes.upgrade,

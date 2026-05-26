@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart' as legacy_provider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'providers/expense_provider.dart';
 import 'providers/budget_provider.dart';
 import 'providers/category_provider.dart';
@@ -22,9 +24,10 @@ import 'constants/app_themes.dart';
 /// This function orchestrates the bootstrap process, including:
 /// 1. Global error handling initialization.
 /// 2. Ensuring Flutter services are ready.
-/// 3. Initializing local database services (SQLite/Web storage).
-/// 4. Initializing background/push notification services.
-/// 5. Setting up the dependency injection tree using a hybrid approach
+/// 3. Initializing Firebase services.
+/// 4. Initializing local database services (SQLite/Web storage).
+/// 5. Initializing background/push notification services.
+/// 6. Setting up the dependency injection tree using a hybrid approach
 ///    of Riverpod ([ProviderScope]) and legacy Provider ([MultiProvider]).
 void main() async {
   // Initialize the global error handler to catch and report app-wide exceptions.
@@ -34,6 +37,11 @@ void main() async {
   await GlobalErrorHandler.handle(() async {
     // Required to interact with the Flutter engine before runApp() is called.
     WidgetsFlutterBinding.ensureInitialized();
+
+    // Initialize Firebase
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
 
     // Database Initialization:
     // ✅ On web: seeds SharedPreferences defaults for persistent storage simulation.

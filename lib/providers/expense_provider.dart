@@ -3,6 +3,8 @@ import '../database/database_helper.dart';
 import '../models/expense_model.dart';
 import '../utils/widget_helper.dart';
 import '../utils/smart_features.dart';
+import '../features/parent_link/services/parent_link_service.dart';
+import '../features/parent_link/services/cloud_sync_service.dart';
 
 /// A provider that manages the state and business logic for financial transactions.
 /// 
@@ -95,6 +97,16 @@ class ExpenseProvider with ChangeNotifier {
     try {
       await _dbHelper.insertExpense(expense);
       await fetchExpenses();
+      
+      try {
+        final link = await ParentLinkService.instance.getActiveLink();
+        if (link != null) {
+          final snapshot = await ParentLinkService.instance.buildSnapshot(this, 'Student');
+          await CloudSyncService.instance.syncSnapshot(snapshot, link.accessCode);
+        }
+      } catch (syncError) {
+        debugPrint('Cloud sync after add failed: $syncError');
+      }
     } catch (e) {
       _errorMessage = 'Failed to add: $e';
       notifyListeners();
@@ -117,6 +129,16 @@ class ExpenseProvider with ChangeNotifier {
     try {
       await _dbHelper.softDeleteExpense(id);
       await fetchExpenses();
+
+      try {
+        final link = await ParentLinkService.instance.getActiveLink();
+        if (link != null) {
+          final snapshot = await ParentLinkService.instance.buildSnapshot(this, 'Student');
+          await CloudSyncService.instance.syncSnapshot(snapshot, link.accessCode);
+        }
+      } catch (syncError) {
+        debugPrint('Cloud sync after delete failed: $syncError');
+      }
     } catch (e) {
       _errorMessage = 'Failed to delete: $e';
       notifyListeners();

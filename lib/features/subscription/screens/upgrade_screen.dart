@@ -111,9 +111,9 @@ class UpgradeScreen extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.05),
+        color: AppColors.primary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2), width: 2),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 2),
       ),
       child: Column(
         children: [

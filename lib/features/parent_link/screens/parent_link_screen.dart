@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../../constants/app_colors.dart';
-import '../../../router/app_routes.dart';
-import '../../subscription/services/subscription_service.dart';
+import '../../../providers/expense_provider.dart';
 import '../models/parent_link_model.dart';
 import '../services/parent_link_service.dart';
+import '../services/cloud_sync_service.dart';
 
 class ParentLinkScreen extends StatefulWidget {
   const ParentLinkScreen({super.key});
@@ -15,294 +16,287 @@ class ParentLinkScreen extends StatefulWidget {
 }
 
 class _ParentLinkScreenState extends State<ParentLinkScreen> {
-  final ParentLinkService _linkService = ParentLinkService();
-  final SubscriptionService _subService = SubscriptionService();
   ParentLink? _activeLink;
   bool _isLoading = true;
-  bool _isSubscribed = false;
+  bool _isGenerating = false;
 
   @override
   void initState() {
     super.initState();
-    _checkSubscriptionAndLoad();
+    _loadLink();
   }
 
-  Future<void> _checkSubscriptionAndLoad() async {
+  Future<void> _loadLink() async {
     setState(() => _isLoading = true);
-    _isSubscribed = await _subService.isParentPlus;
-    
-    if (_isSubscribed) {
-      final link = await _linkService.getActiveLink();
-      if (mounted) {
-        setState(() {
-          _activeLink = link;
-          _isLoading = false;
-        });
-      }
-    } else {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
+    final link = await ParentLinkService.instance.getActiveLink();
+    setState(() {
+      _activeLink = link;
+      _isLoading = false;
+    });
   }
 
-  Future<void> _generateNewLink() async {
-    setState(() => _isLoading = true);
-    final link = await _linkService.generateLink();
-    if (mounted) {
+  Future<void> _generateCode() async {
+    setState(() => _isGenerating = true);
+    try {
+      final newLink = await ParentLinkService.instance.generateLink();
+      
+      // Perform initial sync so the parent can see the data immediately
+      if (mounted) {
+        try {
+          final expenseProvider = Provider.of<ExpenseProvider>(context, listen: false);
+          
+          final snapshot = await ParentLinkService.instance.buildSnapshot(
+            expenseProvider, 
+            'Student',
+          );
+          await CloudSyncService.instance.syncSnapshot(snapshot, newLink.accessCode);
+        } catch (e) {
+          debugPrint('Initial cloud sync failed: $e');
+          if (mounted) {
+            String msg = 'Sync failed: Check your connection.';
+            final errorStr = e.toString().toLowerCase();
+            if (errorStr.contains('permission-denied') || errorStr.contains('permission_denied')) {
+              msg = 'Permission Denied: Check Realtime Database Rules.';
+            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(msg),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        }
+      }
+
       setState(() {
-        _activeLink = link;
-        _isLoading = false;
+        _activeLink = newLink;
       });
+    } finally {
+      setState(() => _isGenerating = false);
     }
   }
 
   Future<void> _deactivateLink() async {
-    setState(() => _isLoading = true);
-    await _linkService.deactivateLink();
-    _checkSubscriptionAndLoad();
+    if (_activeLink == null) return;
+    
+    final code = _activeLink!.accessCode;
+    await ParentLinkService.instance.deactivateLink();
+    await CloudSyncService.instance.deleteSnapshot(code);
+    
+    setState(() {
+      _activeLink = null;
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Parent link deactivated')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Parent Link'),
-            if (_isSubscribed) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'PLUS',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.success,
-                  ),
-                ),
-              ),
-            ],
-          ],
+        title: Text(
+          'Parent Link',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
         ),
-        centerTitle: true,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _isSubscribed 
-              ? _buildSubscribedContent()
-              : _buildLockedState(),
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Share a read-only view of your spending with a parent or guardian',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  if (_activeLink == null)
+                    _buildNoActiveLinkState()
+                  else
+                    _buildActiveLinkState(),
+                ],
+              ),
+            ),
     );
   }
 
-  Widget _buildLockedState() {
+  Widget _buildNoActiveLinkState() {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Card(
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.link_off, size: 56, color: Colors.grey),
+              const SizedBox(height: 16),
+              Text(
+                'No parent link active',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Generate a code and share it with your parent. They enter it to see your spending summary.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(color: Colors.grey[600]),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isGenerating ? null : _generateCode,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: _isGenerating
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text('Generate Code'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActiveLinkState() {
+    return Column(
+      children: [
+        Card(
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-            side: BorderSide(color: AppColors.primary.withOpacity(0.1)),
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Colors.green, width: 2),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(32.0),
+            padding: const EdgeInsets.all(24.0),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.lock_rounded, size: 64, color: AppColors.primary),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.green),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Parent Link Active',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'Parent Link is a Parent Plus feature',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Subscribe to share your spending with a parent or guardian in real-time.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
-                ),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => context.push(AppRoutes.upgrade).then((_) => _checkSubscriptionAndLoad()),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text('Unlock — \$7.99/month', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(
+                  _activeLink!.accessCode,
+                  style: GoogleFonts.poppins(
+                    fontSize: 48,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 8,
+                    color: AppColors.primary,
                   ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Expires: ${DateFormat('dd MMM yyyy').format(_activeLink!.expiresAt)}',
+                  style: GoogleFonts.poppins(color: Colors.grey[600]),
                 ),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildSubscribedContent() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Parent Link',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Share your spending summary with a parent or guardian',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-          ),
-          const SizedBox(height: 32),
-          if (_activeLink == null) _buildGenerateView() else _buildActiveLinkView(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGenerateView() {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: AppColors.primary.withOpacity(0.1)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: [
-            const Icon(Icons.security, size: 64, color: AppColors.primary),
-            const SizedBox(height: 16),
-            const Text(
-              'No Active Code',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Generate a secure 6-digit code that allows your parent to view a summary of your financial status.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _generateNewLink,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text('Generate Code', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActiveLinkView() {
-    final expiryStr = DateFormat('dd MMM yyyy').format(_activeLink!.expiresAt);
-
-    return Column(
-      children: [
+        const SizedBox(height: 24),
         Card(
-          elevation: 4,
-          shadowColor: AppColors.primary.withOpacity(0.2),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              gradient: LinearGradient(
-                colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
+          elevation: 1,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'YOUR ACCESS CODE',
-                  style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, letterSpacing: 1.2),
-                ),
-                const SizedBox(height: 16),
                 Text(
-                  _activeLink!.accessCode,
-                  style: const TextStyle(
-                    fontSize: 48,
+                  'How to share',
+                  style: GoogleFonts.poppins(
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 12,
-                    fontFamily: 'monospace',
+                    fontSize: 16,
                   ),
                 ),
                 const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    'Expires on $expiryStr',
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
-                  ),
-                ),
+                _buildStepItem(1, 'Tell your parent to open UniPocket on their phone'),
+                _buildStepItem(2, 'Go to Settings → Parent View'),
+                _buildStepItem(3, 'Enter this code: ${_activeLink!.accessCode}'),
               ],
             ),
           ),
         ),
         const SizedBox(height: 32),
-        const Icon(Icons.info_outline, color: AppColors.primary),
-        const SizedBox(height: 8),
-        const Text(
-          'Ask your parent to open the app and enter this code under "Parent View"',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 15),
-        ),
-        const SizedBox(height: 48),
-        OutlinedButton(
+        TextButton(
           onPressed: _deactivateLink,
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.error,
-            side: const BorderSide(color: AppColors.error),
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Text(
+            'Deactivate Link',
+            style: GoogleFonts.poppins(
+              color: Colors.red,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          child: const Text('Deactivate Code'),
         ),
       ],
+    );
+  }
+
+  Widget _buildStepItem(int step, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 12,
+            backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+            child: Text(
+              step.toString(),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.poppins(fontSize: 14),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

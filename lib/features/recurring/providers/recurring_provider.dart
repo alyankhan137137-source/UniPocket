@@ -10,7 +10,7 @@ import '../../../database/database_helper.dart';
 /// CRUD operations on templates.
 class RecurringProvider with ChangeNotifier {
   final RecurringService _service = RecurringService();
-  final DatabaseHelper _dbHelper = DatabaseHelper();
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   List<RecurringTransaction> _templates = [];
   bool _isLoading = false;

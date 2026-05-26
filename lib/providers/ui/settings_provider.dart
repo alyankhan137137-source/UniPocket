@@ -10,7 +10,7 @@ part 'settings_provider.g.dart';
 /// provides methods to update individual preferences like theme and currency.
 @riverpod
 class SettingsNotifier extends _$SettingsNotifier {
-  final _dbHelper = DatabaseHelper();
+  final _dbHelper = DatabaseHelper.instance;
 
   /// Loads the initial settings from the database.
   @override

@@ -42,9 +42,8 @@ class BudgetProvider with ChangeNotifier {
         e.isExpense && e.date.year == now.year && e.date.month == now.month
       ).fold(0.0, (sum, e) => sum + (e.amount / 100.0));
 
-      final maps = await _db.getBudgets();
-      _budgets = maps.map((m) {
-        final b = Budget.fromMap(m);
+      final budgetList = await _db.getBudgets();
+      _budgets = budgetList.map((b) {
         final spent = expenses.where((e) =>
           e.isExpense && e.category == b.categoryId &&
           !e.date.isBefore(b.startDate) && !e.date.isAfter(b.endDate)
@@ -56,12 +55,12 @@ class BudgetProvider with ChangeNotifier {
   }
 
   Future<void> addBudget(Budget b, List<Expense> expenses) async {
-    try { await _db.insertBudget(b.toMap()); await loadBudgets(expenses); }
+    try { await _db.insertBudget(b); await loadBudgets(expenses); }
     catch (e) { _error = 'Failed to add: $e'; notifyListeners(); }
   }
 
   Future<void> updateBudget(Budget b, List<Expense> expenses) async {
-    try { await _db.updateBudget(b.toMap()); await loadBudgets(expenses); }
+    try { await _db.updateBudget(b); await loadBudgets(expenses); }
     catch (e) { _error = 'Failed to update: $e'; notifyListeners(); }
   }
 

@@ -3,11 +3,12 @@ plugins {
     id("kotlin-android")
     // Use the modern Flutter Gradle Plugin (compatible with Flutter 3.16+)
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
 }
 
 android {
     // Standardized namespace for modern Android builds
-    namespace = "com.example.unipocket"
+    namespace = "com.example.pockettrack_lite"
     
     // Updated to 35 as required by jni_flutter
     compileSdk = 36
@@ -30,10 +31,10 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.unipocket"
+        applicationId = "com.example.pockettrack_lite"
         
         // Baseline for modern desugaring and plugin compatibility
-        minSdk = flutter.minSdkVersion 
+        minSdk = 21
         
         // Updated to 35 to match compileSdk and satisfy plugin requirements
         targetSdk = 35

@@ -1,13 +1,13 @@
 import 'dart:math';
-import 'package:uuid/uuid.dart';
 
-/// Represents a secure link between a student and a parent.
 class ParentLink {
   final String id;
   final String accessCode;
   final bool isActive;
   final DateTime createdAt;
   final DateTime expiresAt;
+
+  bool get isExpired => DateTime.now().isAfter(expiresAt);
 
   ParentLink({
     required this.id,
@@ -17,18 +17,19 @@ class ParentLink {
     required this.expiresAt,
   });
 
-  /// Generates a new ParentLink with a random 6-digit code and 30-day expiration.
   factory ParentLink.generate() {
     final random = Random();
-    final code = (random.nextInt(900000) + 100000).toString();
-    final now = DateTime.now();
-    
+    final id = DateTime.now().millisecondsSinceEpoch.toString();
+    final accessCode = (100000 + random.nextInt(900000)).toString();
+    final createdAt = DateTime.now();
+    final expiresAt = createdAt.add(const Duration(days: 30));
+
     return ParentLink(
-      id: const Uuid().v4(),
-      accessCode: code,
+      id: id,
+      accessCode: accessCode,
       isActive: true,
-      createdAt: now,
-      expiresAt: now.add(const Duration(days: 30)),
+      createdAt: createdAt,
+      expiresAt: expiresAt,
     );
   }
 
@@ -36,7 +37,7 @@ class ParentLink {
     return {
       'id': id,
       'accessCode': accessCode,
-      'isActive': isActive ? 1 : 0,
+      'isActive': isActive,
       'createdAt': createdAt.toIso8601String(),
       'expiresAt': expiresAt.toIso8601String(),
     };
@@ -46,13 +47,9 @@ class ParentLink {
     return ParentLink(
       id: map['id'] as String,
       accessCode: map['accessCode'] as String,
-      isActive: (map['isActive'] is int) 
-          ? map['isActive'] == 1 
-          : map['isActive'] as bool,
+      isActive: map['isActive'] as bool,
       createdAt: DateTime.parse(map['createdAt'] as String),
       expiresAt: DateTime.parse(map['expiresAt'] as String),
     );
   }
-
-  bool get isExpired => DateTime.now().isAfter(expiresAt);
 }

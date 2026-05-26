@@ -27,7 +27,7 @@ class UndoAction {
 /// This class tracks recent deletions in a stack and provides the ability
 /// to restore them by communicating with the [DatabaseHelper].
 class UndoService extends ChangeNotifier {
-  final DatabaseHelper _dbHelper = DatabaseHelper();
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   /// A stack of [UndoAction]s that can be reversed.
   final List<UndoAction> _undoStack = [];

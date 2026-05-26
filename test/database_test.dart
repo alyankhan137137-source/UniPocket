@@ -3,7 +3,6 @@ import 'package:unipocket/database/database_helper.dart';
 import 'package:unipocket/models/expense_model.dart';
 import 'package:unipocket/models/budget_model.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:sqflite/sqflite.dart';
 
 void main() {
   // Initialize sqflite_ffi for local unit testing
@@ -13,7 +12,7 @@ void main() {
   late DatabaseHelper dbHelper;
 
   setUp(() async {
-    dbHelper = DatabaseHelper();
+    dbHelper = DatabaseHelper.instance;
     // Ensure we start with a clean state for each test if needed
     // await dbHelper.clearAllData(); 
   });
@@ -100,11 +99,10 @@ void main() {
           isAllowance: true,
         );
 
-        final id = await dbHelper.insertBudget(allowanceBudget.toMap());
+        final id = await dbHelper.insertBudget(allowanceBudget);
         expect(id, isNotNull);
 
-        final budgetsData = await dbHelper.getBudgets();
-        final budgets = budgetsData.map((m) => Budget.fromMap(m)).toList();
+        final budgets = await dbHelper.getBudgets();
         
         final retrieved = budgets.firstWhere((b) => b.isAllowance == true);
         expect(retrieved.amount, 150000);
@@ -122,10 +120,9 @@ void main() {
           isAllowance: false,
         );
 
-        await dbHelper.insertBudget(regularBudget.toMap());
+        await dbHelper.insertBudget(regularBudget);
         
-        final budgetsData = await dbHelper.getBudgets();
-        final budgets = budgetsData.map((m) => Budget.fromMap(m)).toList();
+        final budgets = await dbHelper.getBudgets();
         
         final retrieved = budgets.firstWhere((b) => b.categoryId == 'groceries');
         expect(retrieved.isAllowance, false);

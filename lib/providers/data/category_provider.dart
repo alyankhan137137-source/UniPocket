@@ -8,7 +8,8 @@ part 'category_provider.g.dart';
 /// Provides an instance of [CategoryRepository] initialized with [DatabaseHelper].
 @riverpod
 CategoryRepository categoryRepository(CategoryRepositoryRef ref) {
-  return CategoryRepository(DatabaseHelper());
+  final dbHelper = DatabaseHelper.instance;
+  return CategoryRepository(dbHelper);
 }
 
 /// A notifier that manages the state of transaction categories.

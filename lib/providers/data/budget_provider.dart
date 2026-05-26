@@ -11,7 +11,8 @@ part 'budget_provider.g.dart';
 /// Provides an instance of [BudgetRepository] initialized with [DatabaseHelper].
 @riverpod
 BudgetRepository budgetRepository(BudgetRepositoryRef ref) {
-  return BudgetRepository(DatabaseHelper());
+  final dbHelper = DatabaseHelper.instance;
+  return BudgetRepository(dbHelper);
 }
 
 /// A notifier that manages the state of the user's budgets.
