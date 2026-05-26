@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/category_model.dart';
 import '../models/expense_model.dart';
@@ -61,7 +60,9 @@ class CategoryProvider with ChangeNotifier {
           final list = List<Map<String, dynamic>>.from(jsonDecode(raw));
           _categories = list.map((m) => CategoryModel.fromMap(m)).toList();
           for (final d in _defaults) {
-            if (!_categories.any((c) => c.id == d.id)) _categories.add(d);
+            if (!_categories.any((c) => c.id == d.id)) {
+              _categories.add(d);
+            }
           }
           await _saveWeb(_categories);
         }
@@ -133,7 +134,12 @@ class CategoryProvider with ChangeNotifier {
 
   List<Map<String, dynamic>> getMostUsedCategories(List<Expense> expenses, {int limit = 5}) {
     final Map<String, int> map = {};
-    for (var e in expenses) map[e.category] = (map[e.category] ?? 0) + 1;
-    return (map.entries.toList()..sort((a, b) => b.value.compareTo(a.value))).take(limit).map((e) => {'category': e.key, 'count': e.value}).toList();
+    for (var e in expenses) {
+      map[e.category] = (map[e.category] ?? 0) + 1;
+    }
+    return (map.entries.toList()..sort((a, b) => b.value.compareTo(a.value)))
+        .take(limit)
+        .map((e) => {'category': e.key, 'count': e.value})
+        .toList();
   }
 }

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../constants/app_colors.dart';
 import '../models/student_snapshot_model.dart';
 import '../services/cloud_sync_service.dart';
+import '../../../widgets/skeleton.dart';
 
 class ParentViewScreen extends StatefulWidget {
   const ParentViewScreen({super.key});
@@ -89,9 +90,50 @@ class _ParentViewScreenState extends State<ParentViewScreen> {
             ),
         ],
       ),
-      body: _isVerified && _snapshot != null
-          ? _buildDashboardView()
-          : _buildCodeEntryView(),
+      body: _isLoading
+          ? _buildLoadingState()
+          : _isVerified && _snapshot != null
+              ? _buildDashboardView()
+              : _buildCodeEntryView(),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Skeleton(height: 30, width: 200),
+          const SizedBox(height: 8),
+          const Skeleton(height: 15, width: 150),
+          const SizedBox(height: 32),
+          Row(
+            children: List.generate(3, (index) => 
+              const Expanded(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  child: Skeleton(height: 80, borderRadius: 16),
+                ),
+              )
+            ),
+          ),
+          const SizedBox(height: 32),
+          const Skeleton(height: 20, width: 180),
+          const SizedBox(height: 12),
+          const Skeleton(height: 12, width: double.infinity, borderRadius: 10),
+          const SizedBox(height: 32),
+          const Skeleton(height: 20, width: 150),
+          const SizedBox(height: 12),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: 4,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (_, __) => const Skeleton(height: 60, width: double.infinity, borderRadius: 12),
+          ),
+        ],
+      ),
     );
   }
 

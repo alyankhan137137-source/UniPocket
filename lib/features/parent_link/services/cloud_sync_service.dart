@@ -1,6 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import '../models/student_snapshot_model.dart';
+import '../../../core/security/rate_limiter.dart';
 
 class CloudSyncService {
   final FirebaseDatabase _db = FirebaseDatabase.instance;
@@ -11,6 +12,11 @@ class CloudSyncService {
   static final CloudSyncService instance = CloudSyncService._internal();
 
   Future<void> syncSnapshot(StudentSnapshot snapshot, String accessCode) async {
+    if (AppRateLimiters.cloudSyncLimiter.isLimited('sync_$accessCode')) {
+      debugPrint('Sync rate limited for accessCode: $accessCode');
+      return;
+    }
+
     try {
       final data = snapshot.toMap();
       // Realtime Database uses ServerValue.timestamp for server-side time
@@ -24,6 +30,9 @@ class CloudSyncService {
   }
 
   Future<StudentSnapshot?> fetchSnapshot(String accessCode) async {
+    if (AppRateLimiters.cloudSyncLimiter.isLimited('fetch_$accessCode')) {
+      throw Exception("Too many requests. Please wait a moment.");
+    }
     try {
       final event = await _db.ref(_node).child(accessCode).once();
       final data = event.snapshot.value;

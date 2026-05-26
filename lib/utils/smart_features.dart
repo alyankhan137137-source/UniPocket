@@ -60,30 +60,49 @@ class SmartFeatures {
   static String? suggestCategory(String title, String type) {
     final t = title.toLowerCase();
     if (type == 'expense') {
-      if (_matches(t, ['coffee', 'tea', 'restaurant', 'food', 'lunch', 'dinner', 'breakfast', 'cafe', 'eat', 'pizza', 'burger']))
+      if (_matches(t, ['coffee', 'tea', 'restaurant', 'food', 'lunch', 'dinner', 'breakfast', 'cafe', 'eat', 'pizza', 'burger'])) {
         return 'Food & Dining';
-      if (_matches(t, ['uber', 'taxi', 'bus', 'metro', 'fuel', 'petrol', 'gas', 'car', 'ride', 'transport']))
+      }
+      if (_matches(t, ['uber', 'taxi', 'bus', 'metro', 'fuel', 'petrol', 'gas', 'car', 'ride', 'transport'])) {
         return 'Transport';
-      if (_matches(t, ['amazon', 'shop', 'buy', 'purchase', 'mall', 'store', 'cloth', 'shoe', 'dress']))
+      }
+      if (_matches(t, ['amazon', 'shop', 'buy', 'purchase', 'mall', 'store', 'cloth', 'shoe', 'dress'])) {
         return 'Shopping';
-      if (_matches(t, ['electricity', 'water', 'internet', 'wifi', 'bill', 'utility', 'phone', 'subscription']))
+      }
+      if (_matches(t, ['electricity', 'water', 'internet', 'wifi', 'bill', 'utility', 'phone', 'subscription'])) {
         return 'Bills & Utilities';
-      if (_matches(t, ['doctor', 'hospital', 'medicine', 'pharmacy', 'health', 'clinic', 'dental', 'gym']))
+      }
+      if (_matches(t, ['doctor', 'hospital', 'medicine', 'pharmacy', 'health', 'clinic', 'dental', 'gym'])) {
         return 'Health';
-      if (_matches(t, ['netflix', 'movie', 'game', 'spotify', 'entertainment', 'cinema', 'concert']))
+      }
+      if (_matches(t, ['netflix', 'movie', 'game', 'spotify', 'entertainment', 'cinema', 'concert'])) {
         return 'Entertainment';
-      if (_matches(t, ['school', 'course', 'book', 'tuition', 'university', 'education', 'class', 'learn']))
+      }
+      if (_matches(t, ['school', 'course', 'book', 'tuition', 'university', 'education', 'class', 'learn'])) {
         return 'Education';
-      if (_matches(t, ['rent', 'house', 'apartment', 'landlord', 'maintenance', 'home']))
+      }
+      if (_matches(t, ['rent', 'house', 'apartment', 'landlord', 'maintenance', 'home'])) {
         return 'Rent';
-      if (_matches(t, ['grocery', 'vegetable', 'fruit', 'market', 'supermarket', 'carrefour', 'lulu']))
+      }
+      if (_matches(t, ['grocery', 'vegetable', 'fruit', 'market', 'supermarket', 'carrefour', 'lulu'])) {
         return 'Groceries';
+      }
     } else {
-      if (_matches(t, ['salary', 'pay', 'wage', 'payroll', 'stipend'])) return 'Salary';
-      if (_matches(t, ['freelance', 'client', 'project', 'contract', 'gig'])) return 'Freelance';
-      if (_matches(t, ['business', 'profit', 'revenue', 'sale', 'income'])) return 'Business';
-      if (_matches(t, ['invest', 'dividend', 'stock', 'crypto', 'return', 'interest'])) return 'Investment';
-      if (_matches(t, ['gift', 'bonus', 'reward', 'cashback', 'refund'])) return 'Gift';
+      if (_matches(t, ['salary', 'pay', 'wage', 'payroll', 'stipend'])) {
+        return 'Salary';
+      }
+      if (_matches(t, ['freelance', 'client', 'project', 'contract', 'gig'])) {
+        return 'Freelance';
+      }
+      if (_matches(t, ['business', 'profit', 'revenue', 'sale', 'income'])) {
+        return 'Business';
+      }
+      if (_matches(t, ['invest', 'dividend', 'stock', 'crypto', 'return', 'interest'])) {
+        return 'Investment';
+      }
+      if (_matches(t, ['gift', 'bonus', 'reward', 'cashback', 'refund'])) {
+        return 'Gift';
+      }
     }
     return null;
   }
@@ -124,7 +143,9 @@ class SmartFeatures {
   /// Adds a new [query] to the search history, ensuring no duplicates 
   /// and limiting the history size to 10 entries.
   static Future<void> addToSearchHistory(String query) async {
-    if (query.trim().isEmpty) return;
+    if (query.trim().isEmpty) {
+      return;
+    }
     final p = await SharedPreferences.getInstance();
     final history = p.getStringList(_searchHistoryKey) ?? [];
     history.remove(query); // remove duplicate if exists

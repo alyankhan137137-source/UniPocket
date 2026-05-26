@@ -3,14 +3,10 @@ import 'package:go_router/go_router.dart';
 import '../constants/app_colors.dart';
 import '../utils/animations.dart';
 import '../router/app_routes.dart';
+import '../widgets/consent_dialog.dart';
 
 /// The root navigation shell of the application, compatible with GoRouter.
-/// 
-/// This screen implements a persistent [BottomNavigationBar] and handles the 
-/// display of nested routes within a [Scaffold]. It also hosts the global 
-/// Floating Action Button, which is intelligently shown or hidden based 
-/// on the active route.
-class MainNavigationScreen extends StatelessWidget {
+class MainNavigationScreen extends StatefulWidget {
   /// Creates a [MainNavigationScreen] that wraps the provided [child].
   const MainNavigationScreen({super.key, required this.child});
 
@@ -18,12 +14,23 @@ class MainNavigationScreen extends StatelessWidget {
   final Widget child;
 
   @override
+  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+}
+
+class _MainNavigationScreenState extends State<MainNavigationScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => ConsentDialog.checkAndShow(context));
+  }
+
+  @override
   Widget build(BuildContext context) {
     final int selectedIndex = _calculateSelectedIndex(context);
 
     return Scaffold(
       // The child widget provided by GoRouter's ShellRoute
-      body: child,
+      body: widget.child,
       
       floatingActionButton: _shouldShowFAB(selectedIndex)
           ? AppAnimations.scaleOnPress(
@@ -84,7 +91,6 @@ class MainNavigationScreen extends StatelessWidget {
     );
   }
 
-  /// Determines the active index of the bottom navigation bar based on the current URI.
   int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).uri.toString();
     if (location.startsWith(AppRoutes.dashboard)) return 0;
@@ -94,7 +100,6 @@ class MainNavigationScreen extends StatelessWidget {
     return 0;
   }
 
-  /// Navigates to the route associated with the tapped bottom navigation item.
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
       case 0: context.go(AppRoutes.dashboard); break;
@@ -104,9 +109,7 @@ class MainNavigationScreen extends StatelessWidget {
     }
   }
 
-  /// Determines if the Floating Action Button should be visible for the current tab.
   bool _shouldShowFAB(int index) {
-    // Show FAB on Home (0) and Budget (2) tabs
     return index == 0 || index == 2;
   }
 }

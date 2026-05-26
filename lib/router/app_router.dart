@@ -8,6 +8,8 @@ import '../screens/settings/settings_screen.dart';
 import '../screens/expenses/add_expense_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/settings/privacy_policy_screen.dart';
+import '../screens/settings/terms_of_service_screen.dart';
+import '../screens/settings/about_screen.dart';
 import '../screens/main_navigation_screen.dart';
 import '../features/parent_link/screens/parent_link_screen.dart';
 import '../features/parent_link/screens/parent_view_screen.dart';
@@ -84,6 +86,14 @@ final goRouter = GoRouter(
     GoRoute(
       path: AppRoutes.privacyPolicy,
       builder: (context, state) => const PrivacyPolicyScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.termsOfService,
+      builder: (context, state) => const TermsOfServiceScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.appInfo,
+      builder: (context, state) => const AboutScreen(),
     ),
     GoRoute(
       path: AppRoutes.upgrade,

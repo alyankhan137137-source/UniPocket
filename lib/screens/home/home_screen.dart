@@ -9,6 +9,7 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_styles.dart';
 import '../../features/profile/providers/profile_provider.dart';
 import '../../router/app_routes.dart';
+import '../../widgets/skeleton.dart';
 import 'widgets/balance_card.dart';
 import 'widgets/recent_transactions.dart';
 
@@ -85,13 +86,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   const SizedBox(height: 30),
                   _buildQuickActions(context),
                   const SizedBox(height: 30),
-                  _buildSectionHeader(context, "Spending Overview", () => context.go(AppRoutes.analytics)),
+                  _buildSectionHeader(context, "Expenditure Analysis", () => context.go(AppRoutes.analytics)),
                   const SizedBox(height: 15),
                   _buildSpendingOverview(context),
                   const SizedBox(height: 30),
                   const RecentTransactions(),
                   const SizedBox(height: 30),
-                  _buildSectionHeader(context, "Budget Status", () => context.go(AppRoutes.budget)),
+                  _buildSectionHeader(context, "Fiscal Compliance", () => context.go(AppRoutes.budget)),
                   const SizedBox(height: 15),
                   _buildBudgetStatus(context),
                   const SizedBox(height: 100),
@@ -108,12 +109,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _quickAction("Add Allowance", Icons.add_circle_outline, Colors.green, () =>
+        _quickAction("Add Revenue", Icons.add_circle_outline, Colors.green, () =>
             context.push(AppRoutes.addTransaction)),
-        _quickAction("Add Expense", Icons.remove_circle_outline, Colors.orange, () =>
+        _quickAction("Record Outflow", Icons.remove_circle_outline, Colors.orange, () =>
             context.push(AppRoutes.addTransaction)),
-        _quickAction("Analytics", Icons.pie_chart_outline, Colors.blue, () => context.go(AppRoutes.analytics)),
-        _quickAction("Budgets", Icons.grid_view, Colors.purple, () => context.go(AppRoutes.budget)),
+        _quickAction("Financial Insights", Icons.pie_chart_outline, Colors.blue, () => context.go(AppRoutes.analytics)),
+        _quickAction("Targets", Icons.grid_view, Colors.purple, () => context.go(AppRoutes.budget)),
       ],
     );
   }
@@ -151,6 +152,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildSpendingOverview(BuildContext context) {
     final provider = context.watch<ExpenseProvider>();
+    if (provider.isLoading) {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const NeverScrollableScrollPhysics(),
+        child: Row(
+          children: List.generate(3, (index) => 
+            const Padding(
+              padding: EdgeInsets.only(right: 15),
+              child: Skeleton(height: 120, width: 160, borderRadius: 20),
+            )
+          ),
+        ),
+      );
+    }
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       physics: const BouncingScrollPhysics(),
@@ -197,6 +212,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildBudgetStatus(BuildContext context) {
     final budgetProvider = context.watch<BudgetProvider>();
+    if (budgetProvider.isLoading) {
+      return Column(
+        children: List.generate(2, (index) => 
+          const Padding(
+            padding: EdgeInsets.only(bottom: 15),
+            child: Skeleton(height: 80, width: double.infinity, borderRadius: 20),
+          )
+        ),
+      );
+    }
     if (budgetProvider.budgets.isEmpty) {
       return Container(
         width: double.infinity,

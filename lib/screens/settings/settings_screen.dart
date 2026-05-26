@@ -18,8 +18,6 @@ import '../../providers/budget_provider.dart';
 import '../../providers/category_provider.dart';
 import '../../utils/smart_features.dart';
 import '../../router/app_routes.dart';
-import '../../features/parent_link/screens/parent_link_screen.dart';
-import '../../features/parent_link/screens/parent_view_screen.dart';
 
 /// A screen that provides various configuration options for the application.
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -86,45 +84,45 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               error: (_, __) => const SizedBox.shrink(),
             ),
             const SizedBox(height: 30),
-            _buildSection("Preferences", cardColor, [
+            _buildSection("Global Configuration", cardColor, [
               _buildListTile("Currency", settings.currency, Icons.attach_money_rounded,
                 () => _showCurrencyPicker(context, settingsProvider), cardColor),
-              _buildListTile("Theme",
+              _buildListTile("Interface Theme",
                 themeProvider.themeMode == ThemeMode.dark ? "DARK"
                 : themeProvider.themeMode == ThemeMode.light ? "LIGHT" : "SYSTEM",
                 Icons.palette_outlined,
                 () => _showThemePicker(context, themeProvider), cardColor),
-              _buildListTile("Language", "English", Icons.language_rounded, () {}, cardColor),
+              _buildListTile("Regional Language", "English (Global)", Icons.language_rounded, () {}, cardColor),
             ]),
             const SizedBox(height: 20),
-            _buildSection("Budget & Allowance", cardColor, [
+            _buildSection("Fiscal Controls", cardColor, [
               _buildListTile(
-                "Monthly Allowance", 
+                "Monthly Budget Ceiling", 
                 "${settings.currency} ${(settings.monthlyAllowance / 100).toStringAsFixed(2)}", 
                 Icons.account_balance_wallet_outlined,
                 () => _showAllowanceDialog(context, settingsProvider), 
                 cardColor
               ),
-              _buildSwitchTile("Push Notifications", settings.enableNotifications,
+              _buildSwitchTile("Real-time Notifications", settings.enableNotifications,
                 Icons.notifications_active_outlined,
                 (val) => settingsProvider.updateSettings(settings.copyWith(enableNotifications: val))),
-              _buildSliderTile("Budget Alert Threshold", settings.budgetAlertPercentage,
+              _buildSliderTile("Threshold Alert (%)", settings.budgetAlertPercentage,
                 (val) => settingsProvider.updateSettings(settings.copyWith(budgetAlertPercentage: val))),
             ]),
             const SizedBox(height: 20),
-            _buildSection("Security", cardColor, [
-              _buildListTile(_hasPin ? "Change PIN" : "Set PIN",
-                _hasPin ? "Enabled" : "Disabled",
+            _buildSection("Authentication & Security", cardColor, [
+              _buildListTile(_hasPin ? "Modify Security PIN" : "Establish PIN",
+                _hasPin ? "Active" : "Inactive",
                 Icons.lock_outline_rounded,
                 () => _handlePinSetup(context), cardColor),
               if (_hasPin)
-                _buildListTile("Remove PIN", "", Icons.lock_open_rounded,
+                _buildListTile("Disable PIN Security", "", Icons.lock_open_rounded,
                   () => _removePin(context), cardColor, color: Colors.orange),
-              _buildSwitchTile("Biometric Lock", settings.enableBiometric,
+              _buildSwitchTile("Biometric Authentication", settings.enableBiometric,
                 Icons.fingerprint_rounded, (val) async {
                   if (!_hasPin && val) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Please set a PIN first")));
+                      const SnackBar(content: Text("Establish a PIN to enable biometrics")));
                     return;
                   }
                   await SecurityHelper.setBiometricEnabled(val);
@@ -133,25 +131,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 }),
             ]),
             const SizedBox(height: 20),
-            _buildSection("Data Management", cardColor, [
-              _buildListTile("Export Data", "PDF, Excel", Icons.file_download_outlined, () {}, cardColor),
-              _buildListTile("Clear All Data", "Permanent", Icons.delete_outline_rounded,
+            _buildSection("System & Data", cardColor, [
+              _buildListTile("Export Financial Data", "PDF, Excel", Icons.file_download_outlined, () {}, cardColor),
+              _buildListTile("Factory Reset Data", "Caution: Irreversible", Icons.delete_outline_rounded,
                 () => _confirmClearData(context), cardColor, color: Colors.red),
             ]),
             const SizedBox(height: 20),
-            _buildSection("Demo & Testing", cardColor, [
-              _buildListTile("Generate Demo Data", "Try the app with sample data",
+            _buildSection("Development & Insights", cardColor, [
+              _buildListTile("Initialize Sample Environment", "Generate test records",
                 Icons.auto_awesome_outlined,
                 () => _generateDemoData(context), cardColor),
             ]),
             const _ParentLinkSection(),
             const SizedBox(height: 20),
-            _buildSection("About", cardColor, [
-              _buildListTile("App Version", "1.0.0", Icons.info_outline_rounded, () {}, cardColor),
-              _buildListTile("Privacy Policy", "", Icons.privacy_tip_outlined,
-                () => context.push(AppRoutes.privacyPolicy), cardColor),
-              _buildListTile("Contact Support", "", Icons.support_agent_rounded,
-                () => _showContactSupport(context), cardColor),
+            _buildSection("Application Intelligence", cardColor, [
+              _buildListTile("App Information & Support", "Version, Legal, Contact", 
+                Icons.info_outline_rounded, 
+                () => context.push(AppRoutes.appInfo), cardColor),
             ]),
             const SizedBox(height: 50),
           ],
@@ -418,10 +414,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
           TextButton(
             onPressed: () async {
+              final navigator = Navigator.of(ctx);
               await SecurityHelper.clearSecurityData();
               _checkPinStatus();
               if (!mounted) return;
-              Navigator.pop(ctx);
+              navigator.pop();
             },
             child: const Text("Remove", style: TextStyle(color: Colors.orange)),
           ),
@@ -457,20 +454,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           TextButton(
             onPressed: () async {
               final messenger = ScaffoldMessenger.of(context);
+              final navigator = Navigator.of(ctx);
+              final expenseProvider = context.read<ExpenseProvider>();
+              final budgetProvider = context.read<BudgetProvider>();
+              final categoryProvider = context.read<CategoryProvider>();
+              
               await DatabaseHelper.instance.clearAllData();
               final p = await SharedPreferences.getInstance();
               await p.setBool('demo_data_generated', false);
 
               if (!mounted) return;
-              final expenseProvider = context.read<ExpenseProvider>();
               await expenseProvider.fetchExpenses();
+              
               if (!mounted) return;
-              await context.read<BudgetProvider>().loadBudgets(expenseProvider.expenses);
+              await budgetProvider.loadBudgets(expenseProvider.expenses);
+              
               if (!mounted) return;
-              await context.read<CategoryProvider>().loadCategories();
+              await categoryProvider.loadCategories();
 
               if (!mounted) return;
-              Navigator.pop(ctx);
+              navigator.pop();
               messenger.showSnackBar(
                 const SnackBar(content: Text("All data cleared.")));
             },
@@ -516,7 +519,7 @@ class _ParentLinkSection extends StatelessWidget {
         const Padding(
           padding: EdgeInsets.only(left: 8, top: 8, bottom: 12),
           child: Text(
-            'Family',
+            'COLLABORATIVE SYNC',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
@@ -530,7 +533,7 @@ class _ParentLinkSection extends StatelessWidget {
           margin: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
-            side: BorderSide(color: Colors.grey.withOpacity(0.1)),
+            side: BorderSide(color: Colors.grey.withValues(alpha: 0.1)),
           ),
           child: Column(
             children: [
@@ -541,10 +544,10 @@ class _ParentLinkSection extends StatelessWidget {
                     color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.link, color: AppColors.primary, size: 20),
+                  child: const Icon(Icons.share_rounded, color: AppColors.primary, size: 20),
                 ),
-                title: const Text('Parent Link', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
-                subtitle: const Text('Generate a code for your parent to view your spending'),
+                title: const Text('Broadcast Financial Summary', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+                subtitle: const Text('Generate a secure access code for a guardian or mentor'),
                 trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textHint),
                 onTap: () => context.push(AppRoutes.parentLink),
               ),
@@ -556,10 +559,10 @@ class _ParentLinkSection extends StatelessWidget {
                     color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.family_restroom, color: AppColors.primary, size: 20),
+                  child: const Icon(Icons.remove_red_eye_rounded, color: AppColors.primary, size: 20),
                 ),
-                title: const Text('Parent View', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
-                subtitle: const Text("Enter a student's code to view their spending"),
+                title: const Text('Guardian Insight View', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+                subtitle: const Text('Enter an authorized student code to monitor progress'),
                 trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textHint),
                 onTap: () => context.push(AppRoutes.parentView),
               ),

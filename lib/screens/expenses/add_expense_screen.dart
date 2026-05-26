@@ -56,7 +56,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   Future<void> _loadLastCategory() async {
     final last = await SmartFeatures.getLastCategory(_type);
-    if (last != null && mounted) setState(() => _selectedCategory = last);
+    if (last != null && mounted) {
+      setState(() => _selectedCategory = last);
+    }
   }
 
   void _onTitleChanged() {
@@ -75,9 +77,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   }
 
   Future<void> _saveTransaction() async {
+    final provider = context.read<ExpenseProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
     if (!_formKey.currentState!.validate() || _selectedCategory == null) {
       SmartFeatures.errorVibrate();
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(content: Text('Please fill all required fields')));
       return;
     }
@@ -87,7 +93,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     final cents  = (parsed * 100).toInt();
 
     if (!_isEdit) {
-      final provider = context.read<ExpenseProvider>();
       final dup = SmartFeatures.findDuplicate(
         provider.expenses,
         title: _titleCtrl.text.trim(),
@@ -97,7 +102,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       );
       if (dup != null) {
         final confirmed = await _showDuplicateWarning(dup);
-        if (!confirmed) return;
+        if (confirmed == null || !confirmed) {
+          return;
+        }
       }
     }
 
@@ -117,7 +124,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     );
 
     try {
-      final provider = context.read<ExpenseProvider>();
       if (_isEdit) {
         await provider.updateExpense(expense);
       } else {
@@ -127,11 +133,14 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       await SmartFeatures.saveLastCategory(_type, _selectedCategory!);
       SmartFeatures.successVibrate();
 
-      if (mounted) Navigator.pop(context);
+      if (mounted) {
+        navigator.pop();
+      }
     } catch (e) {
       SmartFeatures.errorVibrate();
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

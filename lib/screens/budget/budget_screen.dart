@@ -9,6 +9,7 @@ import '../../models/category_model.dart';
 import '../../models/expense_model.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_styles.dart';
+import '../../widgets/skeleton.dart';
 
 /// A screen for managing and tracking budgets by category and monthly allowance.
 class BudgetScreen extends StatefulWidget {
@@ -42,7 +43,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Budgets', style: AppStyles.heading3),
+        title: const Text('Financial Targets', style: AppStyles.heading3),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -54,7 +55,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
         ],
       ),
       body: budgetProvider.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? _buildLoadingState()
           : RefreshIndicator(
               onRefresh: () async {
                 await budgetProvider.loadBudgets(expenseProvider.expenses);
@@ -154,7 +155,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Monthly Allowance", style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
+              const Text("Monthly Spending Limit", style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
               GestureDetector(
                 onTap: () => _showAllowanceDialog(context, currentAllowance: allowanceAmount),
                 child: const Icon(Icons.edit_outlined, color: Colors.white, size: 20),
@@ -167,8 +168,8 @@ class _BudgetScreenState extends State<BudgetScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildAllowanceStat("Spent", "\$${spent.toStringAsFixed(2)}"),
-              _buildAllowanceStat("Remaining", "\$${remaining.toStringAsFixed(2)}", isRight: true),
+              _buildAllowanceStat("Utilized", "\$${spent.toStringAsFixed(2)}"),
+              _buildAllowanceStat("Available", "\$${remaining.toStringAsFixed(2)}", isRight: true),
             ],
           ),
           const SizedBox(height: 16),
@@ -218,33 +219,64 @@ class _BudgetScreenState extends State<BudgetScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
           ElevatedButton(
-            onPressed: () async {
-              final amount = double.tryParse(controller.text);
-              if (amount != null) {
-                final now = DateTime.now();
-                final budget = Budget(
-                  categoryId: 'allowance',
-                  amount: (amount * 100).toInt(),
-                  period: 'monthly',
-                  startDate: DateTime(now.year, now.month, 1),
-                  endDate: DateTime(now.year, now.month + 1, 0),
-                  isAllowance: true,
-                );
-                
-                final budgetProvider = context.read<BudgetProvider>();
-                final existing = budgetProvider.budgets.where((b) => b.isAllowance).firstOrNull;
-                
-                if (existing != null) {
-                  await budgetProvider.updateBudget(budget.copyWith(id: existing.id), context.read<ExpenseProvider>().expenses);
-                } else {
-                  await budgetProvider.addBudget(budget, context.read<ExpenseProvider>().expenses);
-                }
-                
-                if (mounted) Navigator.pop(ctx);
-              }
-            },
+                onPressed: () async {
+                  final amount = double.tryParse(controller.text);
+                  if (amount != null) {
+                    final now = DateTime.now();
+                    final budget = Budget(
+                      categoryId: 'allowance',
+                      amount: (amount * 100).toInt(),
+                      period: 'monthly',
+                      startDate: DateTime(now.year, now.month, 1),
+                      endDate: DateTime(now.year, now.month + 1, 0),
+                      isAllowance: true,
+                    );
+                    
+                    final budgetProvider = context.read<BudgetProvider>();
+                    final expenseProvider = context.read<ExpenseProvider>();
+                    final navigator = Navigator.of(ctx);
+                    final existing = budgetProvider.budgets.where((b) => b.isAllowance).firstOrNull;
+                    
+                    if (existing != null) {
+                      await budgetProvider.updateBudget(budget.copyWith(id: existing.id), expenseProvider.expenses);
+                    } else {
+                      await budgetProvider.addBudget(budget, expenseProvider.expenses);
+                    }
+                    
+                    if (mounted) navigator.pop();
+                  }
+                },
             style: AppStyles.primaryButton,
             child: const Text("Confirm"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          const Skeleton(height: 180, width: double.infinity, borderRadius: 24),
+          const SizedBox(height: 20),
+          const Skeleton(height: 200, width: double.infinity, borderRadius: 24),
+          const SizedBox(height: 30),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              Skeleton(height: 24, width: 150),
+              Skeleton(height: 24, width: 24),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Expanded(
+            child: ListView.separated(
+              itemCount: 3,
+              separatorBuilder: (_, __) => const SizedBox(height: 15),
+              itemBuilder: (_, __) => const Skeleton(height: 120, width: double.infinity, borderRadius: 20),
+            ),
           ),
         ],
       ),
@@ -282,7 +314,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Category Total", style: AppStyles.body2),
+                  Text("Cumulative Target", style: AppStyles.body2),
                   const SizedBox(height: 4),
                   Text("\$${totalBudget.toStringAsFixed(0)}", style: AppStyles.heading2),
                 ],
@@ -290,7 +322,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text("Total Spent", style: AppStyles.body2),
+                  Text("Total Outflow", style: AppStyles.body2),
                   const SizedBox(height: 4),
                   Text("\$${totalSpent.toStringAsFixed(0)}", style: AppStyles.heading2.copyWith(color: color)),
                 ],
@@ -316,7 +348,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text("${(percent * 100).toStringAsFixed(0)}%", style: AppStyles.heading3),
-                  Text("Used", style: AppStyles.caption),
+                  Text("Utilized", style: AppStyles.caption),
                 ],
               ),
             ],
@@ -511,9 +543,12 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       startDate: DateTime.now(),
                       endDate: DateTime.now().add(const Duration(days: 30)),
                     );
-                    await context.read<BudgetProvider>().addBudget(budget, context.read<ExpenseProvider>().expenses);
+                    final budgetProvider = context.read<BudgetProvider>();
+                    final expenseProvider = context.read<ExpenseProvider>();
+                    final navigator = Navigator.of(context);
+                    await budgetProvider.addBudget(budget, expenseProvider.expenses);
                     if (!mounted) return;
-                    Navigator.pop(context);
+                    navigator.pop();
                   }
                 },
                 style: AppStyles.primaryButton,

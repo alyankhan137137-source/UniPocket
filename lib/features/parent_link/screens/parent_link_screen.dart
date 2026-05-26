@@ -7,6 +7,7 @@ import '../../../providers/expense_provider.dart';
 import '../models/parent_link_model.dart';
 import '../services/parent_link_service.dart';
 import '../services/cloud_sync_service.dart';
+import '../../../widgets/skeleton.dart';
 
 class ParentLinkScreen extends StatefulWidget {
   const ParentLinkScreen({super.key});
@@ -104,7 +105,16 @@ class _ParentLinkScreenState extends State<ParentLinkScreen> {
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                children: const [
+                  Skeleton(height: 24, width: 250),
+                  SizedBox(height: 32),
+                  Skeleton(height: 250, width: double.infinity, borderRadius: 16),
+                ],
+              ),
+            )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
               child: Column(

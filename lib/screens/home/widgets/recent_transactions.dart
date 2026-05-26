@@ -8,6 +8,7 @@ import '../../../models/expense_model.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_styles.dart';
 import '../../../constants/app_constants.dart';
+import '../../../widgets/skeleton.dart';
 import '../../expenses/add_expense_screen.dart';
 
 /// A widget that displays a list of the most recent financial transactions.
@@ -25,12 +26,12 @@ class RecentTransactions extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Recent Transactions", style: AppStyles.heading3),
+            Text("Recent Activity", style: AppStyles.heading3),
             TextButton(
               onPressed: () {
                 // TODO: Implement navigation to a full transaction history screen
               },
-              child: const Text("See All", style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
+              child: const Text("View All", style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
             ),
           ],
         ),
@@ -38,10 +39,13 @@ class RecentTransactions extends StatelessWidget {
         Consumer<ExpenseProvider>(
           builder: (context, provider, _) {
             if (provider.isLoading) {
-              return const Center(child: Padding(
-                padding: EdgeInsets.all(40),
-                child: CircularProgressIndicator(color: AppColors.primary),
-              ));
+              return ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: 5,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, index) => const _TransactionSkeleton(),
+              );
             }
             if (provider.expenses.isEmpty) {
               return Container(
@@ -71,6 +75,46 @@ class RecentTransactions extends StatelessWidget {
           },
         ),
       ],
+    );
+  }
+}
+
+class _TransactionSkeleton extends StatelessWidget {
+  const _TransactionSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppStyles.cardShadow,
+      ),
+      child: Row(
+        children: [
+          const Skeleton(height: 48, width: 48, borderRadius: 24),
+          const SizedBox(width: 16),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Skeleton(height: 16, width: 120),
+                SizedBox(height: 8),
+                Skeleton(height: 12, width: 80),
+              ],
+            ),
+          ),
+          const Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Skeleton(height: 16, width: 60),
+              SizedBox(height: 8),
+              Skeleton(height: 10, width: 40),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

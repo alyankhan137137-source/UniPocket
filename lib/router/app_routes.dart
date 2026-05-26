@@ -52,6 +52,12 @@ class AppRoutes {
   
   /// The application's privacy policy screen.
   static const String privacyPolicy = '/settings/privacy-policy';
+  
+  /// The legal terms of service screen.
+  static const String termsOfService = '/settings/terms-of-service';
+
+  /// Consolidated application information, support, and legal.
+  static const String appInfo = '/settings/about';
 
   /// Access to soft-deleted items that can be restored.
   static const String trash = '/trash';

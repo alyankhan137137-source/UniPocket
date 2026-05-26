@@ -5,6 +5,7 @@ import 'package:currency_picker/currency_picker.dart';
 import '../../../providers/expense_provider.dart';
 import '../../../providers/settings_provider.dart';
 import '../../../constants/app_colors.dart';
+import '../../../widgets/skeleton.dart';
 
 /// A card widget that displays the user's total balance, allowance, and expenses.
 /// 
@@ -37,11 +38,7 @@ class _BalanceCardState extends State<BalanceCard> {
     final currency = settings.currency;
 
     if (provider.isLoading) {
-      return Container(
-        height: 200, width: double.infinity,
-        decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(20)),
-        child: const Center(child: CircularProgressIndicator(color: AppColors.primary)),
-      );
+      return const Skeleton(height: 200, width: double.infinity, borderRadius: 20);
     }
 
     return Container(
@@ -97,11 +94,11 @@ class _BalanceCardState extends State<BalanceCard> {
                   const Spacer(),
                   Row(
                     children: [
-                      Expanded(child: _infoCol("Allowance/Added",
+                      Expanded(child: _infoCol("Net Revenue",
                         _isBalanceVisible ? _formatAmount(provider.totalIncome, currency) : "••••",
                         Icons.arrow_downward_rounded, Colors.greenAccent)),
                       Container(width: 1, height: 30, color: Colors.white.withValues(alpha: 0.2)),
-                      Expanded(child: _infoCol("Expenses",
+                      Expanded(child: _infoCol("Expenditure",
                         _isBalanceVisible ? _formatAmount(provider.totalExpense, currency) : "••••",
                         Icons.arrow_upward_rounded, Colors.redAccent)),
                     ],

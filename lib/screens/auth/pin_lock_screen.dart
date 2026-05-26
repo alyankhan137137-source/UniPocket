@@ -4,12 +4,9 @@ import '../../utils/security_helper.dart';
 import '../../utils/animations.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_styles.dart';
+import '../../core/security/rate_limiter.dart';
 
 /// A security screen that handles PIN entry and biometric authentication.
-/// 
-/// This screen is used for both setting up a new PIN and verifying an 
-/// existing one. It features a custom numeric keypad, haptic feedback, 
-/// and shake animations on incorrect entry.
 class PinLockScreen extends StatefulWidget {
   /// Whether the screen is in confirmation mode (e.g., repeating a new PIN).
   final bool isConfirming;
@@ -35,6 +32,7 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
   String _enteredPin = "";
   late AnimationController _shakeController;
   bool _isError = false;
+  bool _isLockedOut = false;
 
   @override
   void initState() {
@@ -43,16 +41,25 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
+    _checkLockoutStatus();
     _checkBiometrics();
+  }
+
+  void _checkLockoutStatus() {
+    if (AppRateLimiters.pinAttemptLimiter.isLimited('pin_entry')) {
+      setState(() => _isLockedOut = true);
+    }
   }
 
   /// Attempts biometric authentication if enabled and not in confirmation mode.
   Future<void> _checkBiometrics() async {
+    if (_isLockedOut) return;
     if (!widget.isConfirming) {
       final bool enabled = await SecurityHelper.isBiometricEnabled();
       if (enabled) {
         final bool authenticated = await SecurityHelper.authenticate();
         if (authenticated && widget.onComplete != null) {
+          AppRateLimiters.pinAttemptLimiter.reset('pin_entry');
           widget.onComplete!("BIOMETRIC_SUCCESS");
         }
       }
@@ -67,6 +74,7 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
 
   /// Handles numeric key presses and triggers verification when 4 digits are entered.
   void _onKeyPress(String key) {
+    if (_isLockedOut) return;
     if (_enteredPin.length < 4) {
       HapticFeedback.lightImpact();
       setState(() => _enteredPin += key);
@@ -76,6 +84,7 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
 
   /// Removes the last digit from the entered PIN.
   void _onBackspace() {
+    if (_isLockedOut) return;
     if (_enteredPin.isNotEmpty) {
       HapticFeedback.lightImpact();
       setState(() => _enteredPin = _enteredPin.substring(0, _enteredPin.length - 1));
@@ -84,8 +93,15 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
 
   /// Verifies the entered PIN against either the initial entry or saved security data.
   Future<void> _verifyPin() async {
+    if (AppRateLimiters.pinAttemptLimiter.isLimited('pin_entry')) {
+      setState(() => _isLockedOut = true);
+      _triggerError(message: "Too many attempts. Please try again later.");
+      return;
+    }
+
     if (widget.isConfirming) {
       if (_enteredPin == widget.initialPin) {
+        AppRateLimiters.pinAttemptLimiter.reset('pin_entry');
         await SecurityHelper.savePin(_enteredPin);
         if (widget.onComplete != null) widget.onComplete!(_enteredPin);
       } else {
@@ -94,6 +110,7 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
     } else {
       final savedPin = await SecurityHelper.getPin();
       if (_enteredPin == savedPin) {
+        AppRateLimiters.pinAttemptLimiter.reset('pin_entry');
         if (widget.onComplete != null) widget.onComplete!(_enteredPin);
       } else {
         _triggerError();
@@ -102,9 +119,14 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
   }
 
   /// Triggers haptic feedback and shake animation to signal an incorrect PIN.
-  void _triggerError() {
+  void _triggerError({String? message}) {
     HapticFeedback.vibrate();
     setState(() => _isError = true);
+    if (message != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: AppColors.error),
+      );
+    }
     _shakeController.forward().then((_) {
       _shakeController.reset();
       setState(() { _enteredPin = ""; _isError = false; });
@@ -128,6 +150,15 @@ class _PinLockScreenState extends State<PinLockScreen> with SingleTickerProvider
                 children: [
                   const Spacer(),
                   _buildHeader(),
+                  if (_isLockedOut)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 20),
+                      child: Text(
+                        "Device temporarily locked due to security protocols.",
+                        textAlign: TextAlign.center,
+                        style: AppStyles.caption.copyWith(color: AppColors.error, fontWeight: FontWeight.bold),
+                      ),
+                    ),
                   const SizedBox(height: 40),
                   _buildPinDots(),
                   const Spacer(),

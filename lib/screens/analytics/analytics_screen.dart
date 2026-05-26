@@ -6,6 +6,7 @@ import '../../providers/expense_provider.dart';
 import '../../providers/budget_provider.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_styles.dart';
+import '../../widgets/skeleton.dart';
 
 /// A screen that provides visual data analysis of the user's financial activity.
 /// 
@@ -70,11 +71,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
   Widget build(BuildContext context) {
     final expenseProvider = context.watch<ExpenseProvider>();
     final budgetProvider = context.watch<BudgetProvider>();
+    final isLoading = expenseProvider.isLoading || budgetProvider.isLoading;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Analytics', style: AppStyles.heading3),
+        title: const Text('Financial Insights', style: AppStyles.heading3),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -82,27 +84,55 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildPeriodSelector(),
-            const SizedBox(height: 25),
-            _buildSummaryCards(expenseProvider),
-            const SizedBox(height: 30),
-            _buildChartSection("Spending Trend", _buildLineChart(expenseProvider)),
-            const SizedBox(height: 30),
-            _buildChartSection("Category Breakdown", _buildPieChart(expenseProvider)),
-            const SizedBox(height: 30),
-            _buildChartSection("Income vs Expense", _buildBarChart(expenseProvider)),
-            const SizedBox(height: 30),
-            _buildTopCategories(expenseProvider),
-            const SizedBox(height: 30),
-            _buildInsights(expenseProvider, budgetProvider),
-            const SizedBox(height: 100),
-          ],
-        ),
+        child: isLoading 
+          ? _buildLoadingState()
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildPeriodSelector(),
+                const SizedBox(height: 25),
+                _buildSummaryCards(expenseProvider),
+                const SizedBox(height: 30),
+                _buildChartSection("Expenditure Trajectory", _buildLineChart(expenseProvider)),
+                const SizedBox(height: 30),
+                _buildChartSection("Categorical Distribution", _buildPieChart(expenseProvider)),
+                const SizedBox(height: 30),
+                _buildChartSection("Revenue vs Expenditure", _buildBarChart(expenseProvider)),
+                const SizedBox(height: 30),
+                _buildTopCategories(expenseProvider),
+                const SizedBox(height: 30),
+                _buildInsights(expenseProvider, budgetProvider),
+                const SizedBox(height: 100),
+              ],
+            ),
       ),
       floatingActionButton: _buildExportFAB(),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Skeleton(height: 45, width: double.infinity, borderRadius: 12),
+        const SizedBox(height: 25),
+        Row(
+          children: List.generate(3, (index) => 
+            const Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4),
+                child: Skeleton(height: 80, borderRadius: 16),
+              ),
+            )
+          ),
+        ),
+        const SizedBox(height: 30),
+        const Skeleton(height: 250, width: double.infinity, borderRadius: 24),
+        const SizedBox(height: 30),
+        const Skeleton(height: 250, width: double.infinity, borderRadius: 24),
+        const SizedBox(height: 30),
+        const Skeleton(height: 200, width: double.infinity, borderRadius: 20),
+      ],
     );
   }
 
@@ -137,11 +167,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
   Widget _buildSummaryCards(ExpenseProvider provider) {
     return Row(
       children: [
-        _summaryCard("Income", provider.totalIncome, Icons.arrow_downward, Colors.green),
+        _summaryCard("Total Revenue", provider.totalIncome, Icons.arrow_downward, Colors.green),
         const SizedBox(width: 12),
-        _summaryCard("Expense", provider.totalExpense, Icons.arrow_upward, Colors.red),
+        _summaryCard("Expenditure", provider.totalExpense, Icons.arrow_upward, Colors.red),
         const SizedBox(width: 12),
-        _summaryCard("Savings", provider.currentBalance, Icons.account_balance_wallet, Colors.blue),
+        _summaryCard("Liquidity", provider.currentBalance, Icons.account_balance_wallet, Colors.blue),
       ],
     );
   }
